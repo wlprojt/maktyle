@@ -38,7 +38,7 @@ export default function Footer() {
               className="flex-1 rounded-full px-3 md:px-5 text-gray-800 outline-none"
             />
 
-            <button className="flex items-center gap-2 rounded-full bg-purple-600 px-3 md:px-6 py-3 font-semibold transition hover:bg-purple-700">
+            <button className="flex items-center rounded-full bg-purple-600 px-3 md:px-6 py-3 font-semibold transition hover:bg-purple-700">
               Subscribe
               <ArrowRight size={18} />
             </button>

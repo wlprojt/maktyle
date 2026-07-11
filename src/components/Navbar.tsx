@@ -19,7 +19,7 @@ export default function Navbar() {
               alt="Logo"
               width={400}
               height={400}
-              className="w-30 h-15 md:w-40 md:h-20"
+              className="w-35 h-17 md:w-40 md:h-20"
             />
         </Link>
 
