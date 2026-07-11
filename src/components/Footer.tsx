@@ -21,7 +21,7 @@ export default function Footer() {
     <footer className="bg-[#0F172A] text-white">
       {/* Newsletter */}
       <div className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-5 py-10 lg:flex-row lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-5 py-10 lg:flex-row lg:px-8 overflow-hidden">
           <div>
             <h2 className="text-3xl font-bold">
               Stay Updated 🎁
