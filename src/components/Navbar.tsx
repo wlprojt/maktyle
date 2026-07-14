@@ -49,10 +49,12 @@ export default function Navbar() {
           <button>
             <Search size={25} strokeWidth={2} />
           </button>
-
+          
+          <Link href="/dashboard">
           <button>
             <User size={25} strokeWidth={2} />
           </button>
+          </Link>
 
           <button className="relative">
             <ShoppingCart size={26} strokeWidth={2} />
