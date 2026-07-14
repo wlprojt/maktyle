@@ -183,15 +183,19 @@ export default function RegisterPage() {
         {/* Registration form */}
         <section className="flex items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
           <div className="w-full max-w-[620px] rounded-[34px] border border-slate-100 bg-white p-6 shadow-[0_24px_80px_rgba(63,41,92,0.10)] sm:p-10 xl:p-12">
+            {/* Mobile logo */}
             <Link
               href="/"
               className="mb-9 flex items-center justify-center gap-2 lg:hidden"
             >
-              <Gift className="text-purple-600" size={32} />
+              <Gift className="text-[#c64ed8]" size={32} strokeWidth={2.2} />
 
-              <span className="text-3xl font-extrabold text-slate-900">
-                mak<span className="text-purple-600">tyle</span>
-              </span>
+              <div className="text-4xl font-extrabold tracking-tight text-[#111827]">
+                mak
+                <span className="bg-gradient-to-r from-[#ec4899] to-[#7c3aed] bg-clip-text text-transparent">
+                  tyle
+                </span>
+              </div>
             </Link>
 
             <div>
