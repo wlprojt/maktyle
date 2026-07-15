@@ -4,6 +4,7 @@ import Categories from "@/components/Categories";
 import DesignSteps from "@/components/DesignSteps";
 import Hero from "@/components/Hero";
 import Occasions from "@/components/Occasions";
+import PhotoFrames from "@/components/PhotoFrames";
 import StatsBar from "@/components/StatsBar";
 import { Metadata } from "next";
 
@@ -21,6 +22,7 @@ export default function HomePage() {
       <DesignSteps />
       <Occasions />
       <BottomFeatures />
+      <PhotoFrames />
     </>
   );
 }

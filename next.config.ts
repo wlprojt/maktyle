@@ -4,9 +4,23 @@ const nextConfig: NextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
+      // Google Avatar
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+      },
+
+      // Cloudinary
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+
+      // Supabase Storage
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
   },
