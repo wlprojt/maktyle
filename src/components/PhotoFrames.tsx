@@ -45,7 +45,7 @@ export default async function PhotoFrames() {
     `)
     .ilike("category", "Photo Frame")
     .order("created_at", { ascending: false })
-    .limit(8);
+    .limit(4);
 
   if (error) {
     console.error("Photo frame fetch error:", error);
