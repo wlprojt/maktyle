@@ -3,6 +3,7 @@ import BottomFeatures from "@/components/BottomFeatures";
 import Categories from "@/components/Categories";
 import CustomLamps from "@/components/CustomLamps";
 import CustomMugs from "@/components/CustomMugs";
+import CustomPillows from "@/components/CustomPillows";
 import DesignSteps from "@/components/DesignSteps";
 import Hero from "@/components/Hero";
 import Occasions from "@/components/Occasions";
@@ -29,6 +30,7 @@ export default function HomePage() {
       <CustomMugs />
       <CustomLamps />
       <PhoneCases />
+      <CustomPillows />
     </>
   );
 }
