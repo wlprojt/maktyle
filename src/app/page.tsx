@@ -6,6 +6,7 @@ import CustomMugs from "@/components/CustomMugs";
 import DesignSteps from "@/components/DesignSteps";
 import Hero from "@/components/Hero";
 import Occasions from "@/components/Occasions";
+import PhoneCases from "@/components/PhoneCases";
 import PhotoFrames from "@/components/PhotoFrames";
 import StatsBar from "@/components/StatsBar";
 import { Metadata } from "next";
@@ -27,6 +28,7 @@ export default function HomePage() {
       <PhotoFrames />
       <CustomMugs />
       <CustomLamps />
+      <PhoneCases />
     </>
   );
 }
