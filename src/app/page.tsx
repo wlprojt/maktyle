@@ -1,6 +1,7 @@
 
 import BottomFeatures from "@/components/BottomFeatures";
 import Categories from "@/components/Categories";
+import CustomLamps from "@/components/CustomLamps";
 import CustomMugs from "@/components/CustomMugs";
 import DesignSteps from "@/components/DesignSteps";
 import Hero from "@/components/Hero";
@@ -25,6 +26,7 @@ export default function HomePage() {
       <BottomFeatures />
       <PhotoFrames />
       <CustomMugs />
+      <CustomLamps />
     </>
   );
 }

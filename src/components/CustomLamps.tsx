@@ -22,7 +22,7 @@ type Product = {
   product_images: ProductImage[] | null;
 };
 
-export default async function CustomMugs() {
+export default async function CustomLamps() {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -43,7 +43,7 @@ export default async function CustomMugs() {
         is_primary
       )
     `)
-    .ilike("category", "Mug")
+    .ilike("category", "Lamp")
     .order("created_at", { ascending: false })
     .limit(4);
 
@@ -74,11 +74,11 @@ export default async function CustomMugs() {
             </p>
 
             <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Custom Mugs
+              Custom LED Lamps
             </h2>
 
             <p className="mt-3 text-slate-500">
-              Design your own personalized mugs for every occasion.
+              Light up your memories with beautiful personalized LED lamps.
             </p>
           </div>
 
@@ -211,7 +211,7 @@ export default async function CustomMugs() {
           href="/products?category=Photo%20Frames"
           className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-white py-3 font-semibold text-purple-600 sm:hidden"
         >
-          View All Mugs
+          View All LED Lamps
           <ArrowRight size={18} />
         </Link>
       </div>
