@@ -1,6 +1,7 @@
 
 import BottomFeatures from "@/components/BottomFeatures";
 import Categories from "@/components/Categories";
+import CustomBottles from "@/components/CustomBottles";
 import CustomLamps from "@/components/CustomLamps";
 import CustomMugs from "@/components/CustomMugs";
 import CustomPillows from "@/components/CustomPillows";
@@ -33,6 +34,7 @@ export default function HomePage() {
       <PhoneCases />
       <CustomPillows />
       <CustomTshirts />
+      <CustomBottles />
     </>
   );
 }
