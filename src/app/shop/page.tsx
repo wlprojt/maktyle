@@ -634,7 +634,7 @@ export default async function ShopPage({
                         <Link
                           href={`/product/${product.id}`}
                           aria-disabled={isOutOfStock}
-                          className={`mt-3 block rounded-lg px-2 py-2.5 text-center text-xs font-bold text-white transition sm:mt-4 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm ${
+                          className={`mt-3 block rounded-lg py-2.5 text-center text-xs font-bold text-white transition sm:mt-4 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm ${
                             isOutOfStock
                               ? "pointer-events-none bg-slate-300"
                               : "bg-gradient-to-r from-[#8549e8] to-[#f36a47] hover:brightness-105"
@@ -642,7 +642,7 @@ export default async function ShopPage({
                         >
                           {isOutOfStock
                             ? "Out of Stock"
-                            : "Customize"}
+                            : "Customize Now"}
                         </Link>
                       </div>
                     </article>
