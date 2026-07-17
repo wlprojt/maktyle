@@ -40,11 +40,20 @@ type Product = {
   product_images: ProductImage[] | null;
 };
 
+// type ShopPageProps = {
+//   searchParams: Promise<{
+//     category?: string;
+//     sort?: string;
+//     limit?: string;
+//   }>;
+// };
+
 type ShopPageProps = {
   searchParams: Promise<{
     category?: string;
     sort?: string;
     limit?: string;
+    page?: string;
   }>;
 };
 
@@ -163,6 +172,8 @@ function hasValidSale(product: Product) {
   );
 }
 
+
+
 export default async function ShopPage({
   searchParams,
 }: ShopPageProps) {
@@ -171,13 +182,47 @@ export default async function ShopPage({
   const selectedCategory = params.category ?? "all";
   const selectedSort = params.sort ?? "latest";
 
-  const parsedLimit = Number(params.limit ?? 16);
+//   const parsedLimit = Number(params.limit ?? 16);
 
-  const productLimit = [8, 12, 16, 24, 32].includes(parsedLimit)
-    ? parsedLimit
-    : 16;
+//   const productLimit = [8, 12, 16, 24, 32].includes(parsedLimit)
+//     ? parsedLimit
+//     : 16;
 
   const supabase = await createClient();
+
+  const currentPage = Math.max(
+  1,
+  Number(params.page ?? 1)
+);
+
+const createPageUrl = (page: number) => {
+  const params = new URLSearchParams();
+
+  if (selectedCategory !== "all") {
+    params.set("category", selectedCategory);
+  }
+
+  if (selectedSort !== "latest") {
+    params.set("sort", selectedSort);
+  }
+
+  if (productLimit !== 16) {
+    params.set("limit", String(productLimit));
+  }
+
+  params.set("page", String(page));
+
+  return `/shop?${params.toString()}`;
+};
+
+const parsedLimit = Number(params.limit ?? 16);
+
+const productLimit = [8, 12, 16, 24, 32].includes(parsedLimit)
+  ? parsedLimit
+  : 16;
+
+const from = (currentPage - 1) * productLimit;
+const to = from + productLimit - 1;
 
   let query = supabase
     .from("products")
@@ -228,14 +273,20 @@ export default async function ShopPage({
     data,
     error,
     count,
-  } = await query.limit(productLimit);
+  } = await query.range(from, to);
 
   if (error) {
     console.error("Shop products error:", error);
   }
 
   const products = (data ?? []) as Product[];
-  const totalProducts = count ?? products.length;
+//   const totalProducts = count ?? products.length;
+
+  const totalProducts = count ?? 0;
+
+const totalPages = Math.ceil(
+  totalProducts / productLimit
+);
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
@@ -395,7 +446,7 @@ export default async function ShopPage({
 
               <Link
                 href="/contact"
-                className="mt-5 block rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-5 py-3 text-center text-sm font-bold text-white transition hover:brightness-105"
+                className="mt-5 block rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-3 text-center text-sm font-bold text-white transition hover:brightness-105"
               >
                 Contact Us
               </Link>
@@ -637,7 +688,7 @@ export default async function ShopPage({
                           className={`mt-3 block rounded-lg py-2.5 text-center text-xs font-bold text-white transition sm:mt-4 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm ${
                             isOutOfStock
                               ? "pointer-events-none bg-slate-300"
-                              : "bg-gradient-to-r from-[#8549e8] to-[#f36a47] hover:brightness-105"
+                              : "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:brightness-110"
                           }`}
                         >
                           {isOutOfStock
@@ -648,7 +699,60 @@ export default async function ShopPage({
                     </article>
                   );
                 })}
+
+                {totalPages > 1 && (
+  <div className="mt-12 flex items-center justify-center gap-2">
+    <Link
+      href={
+        currentPage > 1
+          ? createPageUrl(currentPage - 1)
+          : "#"
+      }
+      className={`rounded-xl border px-4 py-3 font-semibold ${
+        currentPage === 1
+          ? "pointer-events-none bg-slate-100 text-slate-400"
+          : "bg-white hover:border-purple-600 hover:text-purple-600"
+      }`}
+    >
+      ← Previous
+    </Link>
+
+    {Array.from(
+      { length: totalPages },
+      (_, index) => index + 1
+    ).map((page) => (
+      <Link
+        key={page}
+        href={createPageUrl(page)}
+        className={`flex h-11 w-11 items-center justify-center rounded-xl border font-bold transition ${
+          currentPage === page
+            ? "border-purple-600 bg-purple-600 text-white"
+            : "bg-white hover:border-purple-600 hover:text-purple-600"
+        }`}
+      >
+        {page}
+      </Link>
+    ))}
+
+    <Link
+      href={
+        currentPage < totalPages
+          ? createPageUrl(currentPage + 1)
+          : "#"
+      }
+      className={`rounded-xl border px-4 py-3 font-semibold ${
+        currentPage === totalPages
+          ? "pointer-events-none bg-slate-100 text-slate-400"
+          : "bg-white hover:border-purple-600 hover:text-purple-600"
+      }`}
+    >
+      Next →
+    </Link>
+  </div>
+)}
+
               </div>
+              
             )}
           </div>
         </div>
