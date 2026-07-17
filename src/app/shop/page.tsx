@@ -700,7 +700,10 @@ const totalPages = Math.ceil(
                   );
                 })}
 
-                {totalPages > 1 && (
+              </div>
+              
+            )}
+            {totalPages > 1 && (
   <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
     {/* Previous */}
     <Link
@@ -752,10 +755,6 @@ const totalPages = Math.ceil(
     </Link>
   </div>
 )}
-
-              </div>
-              
-            )}
           </div>
         </div>
       </section>
