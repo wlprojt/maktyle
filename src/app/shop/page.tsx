@@ -701,7 +701,7 @@ const totalPages = Math.ceil(
                 })}
 
                 {totalPages > 1 && (
-  <div className="mt-12 flex items-center justify-center gap-2">
+  <div className="mt-12 w-full flex items-center justify-center gap-2">
     <Link
       href={
         currentPage > 1
@@ -724,7 +724,7 @@ const totalPages = Math.ceil(
       <Link
         key={page}
         href={createPageUrl(page)}
-        className={`flex h-11 w-11 items-center justify-center rounded-xl border font-bold transition ${
+        className={`flex h-11 w-11 items-center px-4 py-3 justify-center rounded-xl border font-bold transition ${
           currentPage === page
             ? "border-purple-600 bg-purple-600 text-white"
             : "bg-white hover:border-purple-600 hover:text-purple-600"
