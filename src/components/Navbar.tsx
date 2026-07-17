@@ -25,12 +25,12 @@ export default function Navbar() {
 
         {/* Menu */}
         <nav className="hidden items-center gap-10 text-sm font-medium text-gray-900 md:flex">
-          <a className="relative text-purple-600" href="#">
+          <Link className="relative text-purple-600" href="/">
             Home
             <span className="absolute -bottom-[31px] left-0 h-[3px] w-full rounded-full bg-purple-600" />
-          </a>
+          </Link>
 
-          <a href="#">Shop</a>
+          <Link href="/shop">Shop</Link>
 
           <a href="#">Design Your Gift</a>
 
