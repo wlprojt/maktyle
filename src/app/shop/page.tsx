@@ -701,17 +701,18 @@ const totalPages = Math.ceil(
                 })}
 
                 {totalPages > 1 && (
-  <div className="mt-12 w-full flex items-center justify-center gap-2">
+  <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
+    {/* Previous */}
     <Link
       href={
         currentPage > 1
           ? createPageUrl(currentPage - 1)
           : "#"
       }
-      className={`rounded-xl border px-4 py-3 font-semibold ${
+      className={`rounded-xl px-4 py-3 text-sm font-semibold ${
         currentPage === 1
           ? "pointer-events-none bg-slate-100 text-slate-400"
-          : "bg-white hover:border-purple-600 hover:text-purple-600"
+          : "border border-slate-200 bg-white hover:border-[#8549e8] hover:text-[#8549e8]"
       }`}
     >
       ← Previous
@@ -719,31 +720,32 @@ const totalPages = Math.ceil(
 
     {Array.from(
       { length: totalPages },
-      (_, index) => index + 1
+      (_, i) => i + 1
     ).map((page) => (
       <Link
         key={page}
         href={createPageUrl(page)}
-        className={`flex h-11 w-11 items-center px-4 py-3 justify-center rounded-xl border font-bold transition ${
+        className={`flex h-11 w-11 items-center justify-center rounded-xl font-bold transition ${
           currentPage === page
-            ? "border-purple-600 bg-purple-600 text-white"
-            : "bg-white hover:border-purple-600 hover:text-purple-600"
+            ? "bg-gradient-to-r from-[#8549e8] to-[#f36a47] text-white"
+            : "border border-slate-200 bg-white hover:border-[#8549e8] hover:text-[#8549e8]"
         }`}
       >
         {page}
       </Link>
     ))}
 
+    {/* Next */}
     <Link
       href={
         currentPage < totalPages
           ? createPageUrl(currentPage + 1)
           : "#"
       }
-      className={`rounded-xl border px-4 py-3 font-semibold ${
+      className={`rounded-xl px-4 py-3 text-sm font-semibold ${
         currentPage === totalPages
           ? "pointer-events-none bg-slate-100 text-slate-400"
-          : "bg-white hover:border-purple-600 hover:text-purple-600"
+          : "border border-slate-200 bg-white hover:border-[#8549e8] hover:text-[#8549e8]"
       }`}
     >
       Next →
