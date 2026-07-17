@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,11 +15,11 @@ import {
 
 import { createClient } from "@/lib/supabase/server";
 import ShopSelect from "@/components/ShopSelect";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "maktyle | Shop",
-  description: "Create personalized phone covers, photo frames, mugs, LED lamps, t-shirts, and unique custom gifts. Design your own gifts online with Maktyle.",
+  description:
+    "Create personalized phone covers, photo frames, mugs, LED lamps, T-shirts and unique custom gifts with Maktyle.",
 };
 
 type ProductImage = {
@@ -134,14 +135,30 @@ function getProductImage(product: Product) {
   return images[0]?.image_url ?? null;
 }
 
-function hasValidSale(product: Product) {
+function getPrice(product: Product) {
   const price = Number(product.price);
+
+  return Number.isFinite(price) ? price : 0;
+}
+
+function getSalePrice(product: Product) {
+  if (product.sale_price === null) {
+    return null;
+  }
+
   const salePrice = Number(product.sale_price);
 
+  return Number.isFinite(salePrice) ? salePrice : null;
+}
+
+function hasValidSale(product: Product) {
+  const price = getPrice(product);
+  const salePrice = getSalePrice(product);
+
   return (
-    product.sale_price !== null &&
-    Number.isFinite(salePrice) &&
+    salePrice !== null &&
     salePrice > 0 &&
+    price > 0 &&
     salePrice < price
   );
 }
@@ -155,6 +172,7 @@ export default async function ShopPage({
   const selectedSort = params.sort ?? "latest";
 
   const parsedLimit = Number(params.limit ?? 16);
+
   const productLimit = [8, 12, 16, 24, 32].includes(parsedLimit)
     ? parsedLimit
     : 16;
@@ -221,77 +239,114 @@ export default async function ShopPage({
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
-      {/* Shop banner */}
+      {/* Banner */}
       <section className="relative overflow-hidden bg-gradient-to-r from-[#fff7fb] via-[#faf2ff] to-[#fff8fc]">
-        <div className="absolute left-[30%] top-12 h-40 w-40 rounded-full bg-purple-200/30 blur-3xl" />
-        <div className="absolute right-24 top-10 h-44 w-44 rounded-full bg-pink-200/40 blur-3xl" />
+        <div className="absolute left-10 top-10 h-32 w-32 rounded-full bg-purple-200/30 blur-3xl" />
+        <div className="absolute right-5 top-5 h-32 w-32 rounded-full bg-pink-200/40 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 md:grid-cols-2 md:px-8 lg:py-16">
-          <div>
-            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-[#8549e8]">
+        <div className="relative mx-auto max-w-7xl px-4 py-9 sm:px-6 md:grid md:grid-cols-2 md:items-center md:gap-10 md:px-8 md:py-14">
+          <div className="text-center md:text-left">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8549e8] sm:text-sm">
               Personalized gifts
             </p>
 
-            <h1 className="text-4xl font-black tracking-tight md:text-5xl">
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
               Shop
             </h1>
 
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 md:text-lg">
-              Discover personalized gifts made for every special moment.
-              Add your photos, names and unique designs.
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:text-base md:mx-0 md:mt-5 md:text-lg">
+              Discover personalized gifts made for every special
+              moment. Add your photos, names and unique designs.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm">
-                Custom designs
-              </span>
-
-              <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm">
-                Fast delivery
-              </span>
-
-              <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm">
-                Made with love
-              </span>
+            <div className="mt-5 flex flex-wrap justify-center gap-2 md:justify-start">
+              {[
+                "Custom designs",
+                "Fast delivery",
+                "Made with love",
+              ].map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full bg-white px-3 py-2 text-xs font-semibold shadow-sm sm:text-sm"
+                >
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="relative hidden min-h-[230px] md:block">
-            <div className="absolute left-0 top-12 h-36 w-36 rotate-[-7deg] overflow-hidden rounded-3xl bg-white p-3 shadow-xl">
+          <div className="relative mx-auto mt-8 h-[190px] w-full max-w-[380px] md:mt-0 md:h-[230px]">
+            <div className="absolute left-2 top-10 h-28 w-28 -rotate-6 overflow-hidden rounded-2xl bg-white shadow-lg sm:h-32 sm:w-32">
               <Image
                 src="/wmug.png"
-                alt="Custom mug"
+                alt="Personalized custom mug"
                 fill
-                className="object-contain p-4"
+                sizes="128px"
+                className="object-contain p-3"
               />
             </div>
 
-            <div className="absolute left-[28%] top-0 h-48 w-48 rotate-[4deg] overflow-hidden rounded-3xl bg-white p-3 shadow-xl">
+            <div className="absolute left-1/2 top-0 h-36 w-36 -translate-x-1/2 rotate-3 overflow-hidden rounded-2xl bg-white shadow-xl sm:h-40 sm:w-40">
               <Image
                 src="/fframe.png"
-                alt="Custom photo frame"
+                alt="Personalized photo frame"
                 fill
-                className="object-contain p-4"
+                sizes="160px"
+                className="object-contain p-3"
               />
             </div>
 
-            <div className="absolute right-[5%] top-9 h-44 w-44 rotate-[-3deg] overflow-hidden rounded-3xl bg-white p-3 shadow-xl">
+            <div className="absolute right-2 top-10 h-28 w-28 rotate-6 overflow-hidden rounded-2xl bg-white shadow-lg sm:h-32 sm:w-32">
               <Image
                 src="/pillow.png"
-                alt="Custom pillow"
+                alt="Personalized custom pillow"
                 fill
-                className="object-contain p-4"
+                sizes="128px"
+                className="object-contain p-3"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Shop content */}
-      <section className="mx-auto max-w-7xl px-5 py-10 md:px-8 lg:py-14">
+      {/* Main shop content */}
+      <section className="mx-auto max-w-7xl px-3 py-7 sm:px-5 sm:py-10 md:px-8 lg:py-14">
+        {/* Mobile categories */}
+        <div className="mb-6 lg:hidden">
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => {
+              const Icon = category.icon;
+
+              const active =
+                selectedCategory === category.value ||
+                (selectedCategory === "all" &&
+                  category.value === "all");
+
+              return (
+                <Link
+                  key={category.value}
+                  href={createShopUrl({
+                    category: category.value,
+                    sort: selectedSort,
+                    limit: productLimit,
+                  })}
+                  className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-xs font-semibold transition ${
+                    active
+                      ? "border-[#8549e8] bg-[#8549e8] text-white"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-purple-300 hover:text-[#8549e8]"
+                  }`}
+                >
+                  <Icon size={15} />
+                  {category.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          {/* Sidebar */}
-          <aside className="space-y-6">
+          {/* Desktop sidebar */}
+          <aside className="hidden space-y-6 lg:block">
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="mb-5 text-xl font-black">
                 Categories
@@ -334,22 +389,23 @@ export default async function ShopPage({
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                Create a personalized gift using your photo,
-                name or custom artwork.
+                Create a personalized gift using your photo, name
+                or custom artwork.
               </p>
 
               <Link
                 href="/contact"
-                className="mt-5 block rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-5 py-3 text-center text-sm font-bold text-white"
+                className="mt-5 block rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-5 py-3 text-center text-sm font-bold text-white transition hover:brightness-105"
               >
                 Contact Us
               </Link>
             </div>
           </aside>
 
-          {/* Product area */}
-          <div>
-            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Products */}
+          <div className="min-w-0">
+            {/* Toolbar */}
+            <div className="mb-5 space-y-4 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:space-y-0">
               <p className="text-sm text-slate-500">
                 Showing{" "}
                 <strong className="text-slate-950">
@@ -362,8 +418,11 @@ export default async function ShopPage({
                 products
               </p>
 
-              <div className="flex flex-wrap gap-3">
-                <form action="/shop">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+                <form
+                  action="/shop"
+                  className="w-full sm:w-auto"
+                >
                   {selectedCategory !== "all" && (
                     <input
                       type="hidden"
@@ -380,24 +439,32 @@ export default async function ShopPage({
 
                   <div className="relative">
                     <ShopSelect
-                        name="sort"
-                        defaultValue={selectedSort}
-                        className="appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm font-semibold outline-none focus:border-purple-400"
-                        >
-                        <option value="latest">Sort: Latest</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                        <option value="name">Name: A–Z</option>
+                      name="sort"
+                      defaultValue={selectedSort}
+                      ariaLabel="Sort products"
+                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-8 text-xs font-semibold outline-none transition focus:border-purple-400 sm:w-auto sm:pl-4 sm:pr-10 sm:text-sm"
+                    >
+                      <option value="latest">Latest</option>
+                      <option value="price-low">
+                        Low to High
+                      </option>
+                      <option value="price-high">
+                        High to Low
+                      </option>
+                      <option value="name">Name A–Z</option>
                     </ShopSelect>
 
                     <ChevronDown
-                      size={16}
+                      size={15}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     />
                   </div>
                 </form>
 
-                <form action="/shop">
+                <form
+                  action="/shop"
+                  className="w-full sm:w-auto"
+                >
                   {selectedCategory !== "all" && (
                     <input
                       type="hidden"
@@ -414,19 +481,20 @@ export default async function ShopPage({
 
                   <div className="relative">
                     <ShopSelect
-                        name="limit"
-                        defaultValue={String(productLimit)}
-                        className="appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm font-semibold outline-none focus:border-purple-400"
-                        >
-                        <option value="8">Show: 8</option>
-                        <option value="12">Show: 12</option>
-                        <option value="16">Show: 16</option>
-                        <option value="24">Show: 24</option>
-                        <option value="32">Show: 32</option>
+                      name="limit"
+                      defaultValue={String(productLimit)}
+                      ariaLabel="Products per page"
+                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-8 text-xs font-semibold outline-none transition focus:border-purple-400 sm:w-auto sm:pl-4 sm:pr-10 sm:text-sm"
+                    >
+                      <option value="8">Show 8</option>
+                      <option value="12">Show 12</option>
+                      <option value="16">Show 16</option>
+                      <option value="24">Show 24</option>
+                      <option value="32">Show 32</option>
                     </ShopSelect>
 
                     <ChevronDown
-                      size={16}
+                      size={15}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     />
                   </div>
@@ -434,19 +502,21 @@ export default async function ShopPage({
               </div>
             </div>
 
+            {/* Error state */}
             {error ? (
-              <div className="rounded-3xl border border-red-200 bg-red-50 p-10 text-center">
+              <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center sm:p-10">
                 <h2 className="text-xl font-bold text-red-700">
                   Products could not be loaded
                 </h2>
 
                 <p className="mt-2 text-sm text-red-600">
-                  Please check your Supabase connection and RLS
-                  policies.
+                  Please check your Supabase connection and
+                  product read policies.
                 </p>
               </div>
             ) : products.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 p-12 text-center">
+              /* Empty state */
+              <div className="rounded-3xl border border-dashed border-slate-300 p-10 text-center sm:p-12">
                 <ShoppingBag
                   size={42}
                   className="mx-auto text-slate-300"
@@ -456,39 +526,47 @@ export default async function ShopPage({
                   No products found
                 </h2>
 
-                <p className="mt-2 text-slate-500">
-                  There are currently no products in this category.
+                <p className="mt-2 text-sm text-slate-500 sm:text-base">
+                  There are currently no products in this
+                  category.
                 </p>
 
                 <Link
                   href="/shop"
-                  className="mt-6 inline-block rounded-xl bg-[#8549e8] px-6 py-3 font-bold text-white"
+                  className="mt-6 inline-block rounded-xl bg-[#8549e8] px-6 py-3 text-sm font-bold text-white transition hover:bg-purple-700"
                 >
                   View all products
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              /* Product grid */
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
                 {products.map((product) => {
                   const image = getProductImage(product);
-                  const price = Number(product.price);
-                  const salePrice = Number(product.sale_price);
+                  const price = getPrice(product);
+                  const salePrice = getSalePrice(product);
                   const onSale = hasValidSale(product);
 
-                  const displayedPrice = onSale
-                    ? salePrice
-                    : price;
+                  const displayedPrice =
+                    onSale && salePrice !== null
+                      ? salePrice
+                      : price;
 
-                  const discountPercentage = onSale
-                    ? Math.round(
-                        ((price - salePrice) / price) * 100
-                      )
-                    : 0;
+                  const discountPercentage =
+                    onSale && salePrice !== null
+                      ? Math.round(
+                          ((price - salePrice) / price) * 100
+                        )
+                      : 0;
+
+                  const isOutOfStock =
+                    product.stock !== null &&
+                    product.stock <= 0;
 
                   return (
                     <article
                       key={product.id}
-                      className="group overflow-hidden rounded-3xl border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl"
                     >
                       <div className="relative aspect-square overflow-hidden bg-slate-50">
                         <Link
@@ -498,20 +576,26 @@ export default async function ShopPage({
                           {image ? (
                             <Image
                               src={image}
-                              alt={product.title}
+                              alt={
+                                product.product_images?.find(
+                                  (item) =>
+                                    item.image_url === image
+                                )?.alt_text ||
+                                product.title
+                              }
                               fill
                               sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                              className="object-contain p-5 transition duration-500 group-hover:scale-105"
+                              className="object-contain p-3 transition duration-500 group-hover:scale-105 sm:p-5"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                              No image
+                            <div className="flex h-full items-center justify-center px-3 text-center text-xs text-slate-400">
+                              No product image
                             </div>
                           )}
                         </Link>
 
                         {onSale && (
-                          <span className="absolute left-3 top-3 rounded-full bg-[#8549e8] px-3 py-1 text-xs font-bold text-white">
+                          <span className="absolute left-2 top-2 rounded-full bg-[#8549e8] px-2 py-1 text-[10px] font-bold text-white sm:left-3 sm:top-3 sm:px-3 sm:text-xs">
                             {discountPercentage}% off
                           </span>
                         )}
@@ -519,36 +603,40 @@ export default async function ShopPage({
                         <button
                           type="button"
                           aria-label={`Add ${product.title} to wishlist`}
-                          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition hover:text-red-500"
+                          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition hover:text-red-500 sm:right-3 sm:top-3 sm:h-10 sm:w-10"
                         >
-                          <Heart size={19} />
+                          <Heart size={16} />
                         </button>
 
-                        {product.stock === 0 && (
-                          <div className="absolute inset-x-3 bottom-3 rounded-xl bg-slate-950/80 px-3 py-2 text-center text-xs font-bold text-white backdrop-blur">
+                        {isOutOfStock && (
+                          <div className="absolute inset-x-2 bottom-2 rounded-lg bg-slate-950/80 px-2 py-1.5 text-center text-[10px] font-bold text-white backdrop-blur sm:inset-x-3 sm:bottom-3 sm:text-xs">
                             Out of stock
                           </div>
                         )}
                       </div>
 
-                      <div className="p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#8549e8]">
-                          {product.category ?? "Personalized Gift"}
+                      <div className="p-3 sm:p-4">
+                        <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#8549e8] sm:text-xs">
+                          {product.category ??
+                            "Personalized Gift"}
                         </p>
 
                         <Link href={`/product/${product.id}`}>
-                          <h2 className="mt-2 line-clamp-2 min-h-12 font-bold leading-6 transition hover:text-[#8549e8]">
+                          <h2 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 transition hover:text-[#8549e8] sm:mt-2 sm:min-h-12 sm:text-base sm:leading-6">
                             {product.title}
                           </h2>
                         </Link>
 
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="text-xl font-black text-[#8549e8]">
-                            ₹{displayedPrice.toLocaleString("en-IN")}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
+                          <span className="text-base font-black text-[#8549e8] sm:text-xl">
+                            ₹
+                            {displayedPrice.toLocaleString(
+                              "en-IN"
+                            )}
                           </span>
 
                           {onSale && (
-                            <span className="text-sm text-slate-400 line-through">
+                            <span className="text-[11px] text-slate-400 line-through sm:text-sm">
                               ₹{price.toLocaleString("en-IN")}
                             </span>
                           )}
@@ -556,15 +644,16 @@ export default async function ShopPage({
 
                         <Link
                           href={`/product/${product.id}`}
-                          className={`mt-4 block rounded-xl px-4 py-3 text-center text-sm font-bold text-white transition ${
-                            product.stock === 0
+                          aria-disabled={isOutOfStock}
+                          className={`mt-3 block rounded-lg px-2 py-2.5 text-center text-xs font-bold text-white transition sm:mt-4 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm ${
+                            isOutOfStock
                               ? "pointer-events-none bg-slate-300"
                               : "bg-gradient-to-r from-[#8549e8] to-[#f36a47] hover:brightness-105"
                           }`}
                         >
-                          {product.stock === 0
+                          {isOutOfStock
                             ? "Out of Stock"
-                            : "Customize Now"}
+                            : "Customize"}
                         </Link>
                       </div>
                     </article>

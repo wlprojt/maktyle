@@ -43,11 +43,11 @@ export default function Hero() {
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-            <Link href="/shop">
-            <button className="flex items-center justify-center gap-2 rounded-full bg-purple-600 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:bg-purple-700">
+            <Link className="flex items-center justify-center gap-2 rounded-full bg-purple-600 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:bg-purple-700" href="/shop">
+            {/* <button > */}
               Shop Now
               <ArrowRight size={18} />
-            </button>
+            {/* </button> */}
             </Link>
 
             <button className="flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 font-semibold text-gray-900 shadow-md transition-all hover:scale-105">
