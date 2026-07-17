@@ -404,8 +404,9 @@ export default async function ShopPage({
 
           {/* Products */}
           <div className="min-w-0">
-            {/* Toolbar */}
-            <div className="mb-5 space-y-4 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:space-y-0">
+            {/* Product area */}
+          
+            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-500">
                 Showing{" "}
                 <strong className="text-slate-950">
@@ -418,11 +419,8 @@ export default async function ShopPage({
                 products
               </p>
 
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-                <form
-                  action="/shop"
-                  className="w-full sm:w-auto"
-                >
+              <div className="flex flex-wrap gap-3">
+                <form action="/shop">
                   {selectedCategory !== "all" && (
                     <input
                       type="hidden"
@@ -439,32 +437,24 @@ export default async function ShopPage({
 
                   <div className="relative">
                     <ShopSelect
-                      name="sort"
-                      defaultValue={selectedSort}
-                      ariaLabel="Sort products"
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-8 text-xs font-semibold outline-none transition focus:border-purple-400 sm:w-auto sm:pl-4 sm:pr-10 sm:text-sm"
-                    >
-                      <option value="latest">Latest</option>
-                      <option value="price-low">
-                        Low to High
-                      </option>
-                      <option value="price-high">
-                        High to Low
-                      </option>
-                      <option value="name">Name A–Z</option>
-                    </ShopSelect>
+                        name="sort"
+                        defaultValue={selectedSort}
+                        className="appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm font-semibold outline-none focus:border-purple-400"
+                        >
+                        <option value="latest">Sort: Latest</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="name">Name: A–Z</option>
+                        </ShopSelect>
 
                     <ChevronDown
-                      size={15}
+                      size={16}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     />
                   </div>
                 </form>
 
-                <form
-                  action="/shop"
-                  className="w-full sm:w-auto"
-                >
+                <form action="/shop">
                   {selectedCategory !== "all" && (
                     <input
                       type="hidden"
@@ -481,20 +471,19 @@ export default async function ShopPage({
 
                   <div className="relative">
                     <ShopSelect
-                      name="limit"
-                      defaultValue={String(productLimit)}
-                      ariaLabel="Products per page"
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-8 text-xs font-semibold outline-none transition focus:border-purple-400 sm:w-auto sm:pl-4 sm:pr-10 sm:text-sm"
+                    name="limit"
+                    defaultValue={String(productLimit)}
+                    className="appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm font-semibold outline-none focus:border-purple-400"
                     >
-                      <option value="8">Show 8</option>
-                      <option value="12">Show 12</option>
-                      <option value="16">Show 16</option>
-                      <option value="24">Show 24</option>
-                      <option value="32">Show 32</option>
+                    <option value="8">Show: 8</option>
+                    <option value="12">Show: 12</option>
+                    <option value="16">Show: 16</option>
+                    <option value="24">Show: 24</option>
+                    <option value="32">Show: 32</option>
                     </ShopSelect>
 
                     <ChevronDown
-                      size={15}
+                      size={16}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     />
                   </div>
