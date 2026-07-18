@@ -83,7 +83,7 @@ export default async function CustomPillows() {
           </div>
 
           <Link
-            href="/products?category=Photo%20Frames"
+            href="/shop?category=Pillow"
             className="hidden items-center gap-2 font-semibold text-purple-600 transition hover:text-purple-700 sm:flex"
           >
             View All
@@ -131,6 +131,7 @@ export default async function CustomPillows() {
                   key={product.id}
                   className="group overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl"
                 >
+                  <Link href={`/product/${product.id}`}>
                   <div className="relative aspect-square overflow-hidden bg-[#f5f2f8]">
                     {primaryImage ? (
                       <Image
@@ -188,8 +189,8 @@ export default async function CustomPillows() {
                       )}
                     </div>
 
-                    <Link
-                      href={`/product/${product.id}`}
+                    <div
+                      // href={`/product/${product.id}`}
                       className={`mt-4 block rounded-xl py-3 text-center text-sm font-bold transition ${
                         Number(product.stock ?? 0) > 0
                           ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:brightness-110"
@@ -199,8 +200,9 @@ export default async function CustomPillows() {
                       {Number(product.stock ?? 0) > 0
                         ? "Customize Now"
                         : "Out of Stock"}
-                    </Link>
+                    </div>
                   </div>
+                  </Link>
                 </article>
               );
             })}
@@ -208,7 +210,7 @@ export default async function CustomPillows() {
         )}
 
         <Link
-          href="/products?category=Photo%20Frames"
+          href="/shop?category=Pillow"
           className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-white py-3 font-semibold text-purple-600 sm:hidden"
         >
           View All Pillows

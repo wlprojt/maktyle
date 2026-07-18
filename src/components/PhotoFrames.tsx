@@ -190,8 +190,8 @@ export default async function PhotoFrames() {
                       )}
                     </div>
 
-                    <Link
-                      href={`/product/${product.id}`}
+                    <div
+                      // href="#"
                       className={`mt-4 block rounded-xl py-3 text-center text-sm font-bold transition ${
                         Number(product.stock ?? 0) > 0
                           ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:brightness-110"
@@ -201,7 +201,7 @@ export default async function PhotoFrames() {
                       {Number(product.stock ?? 0) > 0
                         ? "Customize Now"
                         : "Out of Stock"}
-                    </Link>
+                    </div>
                   </div>
                   </Link>
                 </article>
