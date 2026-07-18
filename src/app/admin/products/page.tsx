@@ -65,10 +65,10 @@ export default async function AdminProductsPage() {
                   </p>
 
                   <p className="mt-2 text-cyan-400">
-                    ₹{product.price}
-                    {product.sale_price && (
+                    ₹{product.sale_price}
+                    {product.price && (
                       <span className="ml-2 text-sm text-slate-400 line-through">
-                        ₹{product.sale_price}
+                        ₹{product.price}
                       </span>
                     )}
                   </p>
