@@ -286,7 +286,7 @@ export default function ProductDetailsClient({
           </div>
 
           {/* Upload */}
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <label className="text-sm font-bold">
               Upload your photo
             </label>
@@ -311,10 +311,10 @@ export default function ProductDetailsClient({
                 JPG, PNG or WEBP. Maximum 10MB
               </span>
             </label>
-          </div>
+          </div> */}
 
           {/* Base */}
-          <div className="mt-7">
+          {/* <div className="mt-7">
             <p className="text-sm font-bold">
               Select product base
             </p>
@@ -350,10 +350,10 @@ export default function ProductDetailsClient({
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Color */}
-          <div className="mt-7">
+          {/* <div className="mt-7">
             <p className="text-sm font-bold">
               Select LED color
             </p>
@@ -387,7 +387,7 @@ export default function ProductDetailsClient({
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Quantity */}
           <div className="mt-7">
@@ -455,7 +455,7 @@ export default function ProductDetailsClient({
                 : "Customize & Preview"}
             </Link>
 
-            <button
+            {/* <button
               type="button"
               onClick={addToCart}
               disabled={isOutOfStock}
@@ -464,7 +464,7 @@ export default function ProductDetailsClient({
               <ShoppingCart size={19} />
 
               Add to Cart
-            </button>
+            </button> */}
 
             <button
               type="button"
