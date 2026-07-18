@@ -83,7 +83,7 @@ export default async function PhotoFrames() {
           </div>
 
           <Link
-            href="/products?category=Photo%20Frames"
+            href="/shop?category=Photo%20Frame"
             className="hidden items-center gap-2 font-semibold text-purple-600 transition hover:text-purple-700 sm:flex"
           >
             View All
@@ -131,6 +131,7 @@ export default async function PhotoFrames() {
                   key={product.id}
                   className="group overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl"
                 >
+                  <Link href={`/product/${product.id}`}>
                   <div className="relative aspect-square overflow-hidden bg-[#f5f2f8]">
                     {primaryImage ? (
                       <Image
@@ -167,6 +168,7 @@ export default async function PhotoFrames() {
                     )}
                   </div>
 
+                  
                   <div className="p-4 sm:p-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
                       {product.category}
@@ -201,6 +203,7 @@ export default async function PhotoFrames() {
                         : "Out of Stock"}
                     </Link>
                   </div>
+                  </Link>
                 </article>
               );
             })}
@@ -208,7 +211,7 @@ export default async function PhotoFrames() {
         )}
 
         <Link
-          href="/products?category=Photo%20Frames"
+          href="/shop?category=Photo%20Frame"
           className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-white py-3 font-semibold text-purple-600 sm:hidden"
         >
           View All Photo Frames
