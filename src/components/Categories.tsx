@@ -2,39 +2,48 @@
 
 import Image from "next/image";
 import { ChevronRight, GamepadDirectional} from "lucide-react";
+import Link from "next/link";
 
 const categories = [
   {
     title: "Photo Frames",
     image: "/fframe.png",
+    link: "/shop?category=Photo%20Frame",
   },
   {
     title: "Custom Mugs",
     image: "/wmug.png",
+    link: "/shop?category=Mug",
   },
   {
     title: "LED Lamps",
     image: "/dlamp.png",
+    link: "/shop?category=Lamp",
   },
   {
     title: "Phone Cases",
     image: "/bcover.png",
+    link: "/shop?category=Phone%20Case",
   },
   {
     title: "Pillow",
     image: "/pillow.png",
+    link: "/shop?category=Pillow",
   },
   {
     title: "T-Shirts",
     image: "/ctshirt.png",
+    link: "/shop?category=Tshirt",
   },
   {
     title: "Water Bottles",
     image: "/wbottle.png",
+    link: "/shop?category=Bottle",
   },
   {
     title: "Keychain",
     image: "/kchain.png",
+    link: "/shop?category=Keychain",
   },
 ];
 
@@ -63,7 +72,8 @@ export default function Categories() {
         <div className="relative">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
             {categories.map((item) => (
-              <div
+              <Link
+                href={item.link}
                 key={item.title}
                 className="group cursor-pointer"
               >
@@ -81,7 +91,7 @@ export default function Categories() {
                 <h3 className="mt-3 text-center text-sm font-semibold text-gray-900">
                   {item.title}
                 </h3>
-              </div>
+              </Link>
             ))}
           </div>
 
