@@ -41,7 +41,7 @@ export default function StatsBar() {
             return (
               <div
                 key={item.value}
-                className={`flex items-center justify-center gap-4 ${
+                className={`flex items-center gap-4 ${
                   index !== stats.length - 1
                     ? "lg:border-r lg:border-white/15"
                     : ""
