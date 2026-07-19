@@ -32,7 +32,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Navbar />
-        <NextTopLoader color="#8348de" />
+        <NextTopLoader
+         color="#8348de"
+         showSpinner={false}
+          />
         {children}
         <Footer />
         </body>
