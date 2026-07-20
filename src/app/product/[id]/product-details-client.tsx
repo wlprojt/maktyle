@@ -15,6 +15,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { getCustomizeUrl } from "@/lib/get-customize-url";
 
 type ProductImage = {
   id: string;
@@ -441,19 +442,21 @@ export default function ProductDetailsClient({
           {/* Buttons */}
           <div className="mt-5 grid gap-3">
             <Link
-              href={`/customize/${product.id}?quantity=${quantity}&base=${encodeURIComponent(
-                selectedBase
-              )}&color=${encodeURIComponent(selectedColor)}`}
-              className={`rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-5 py-4 text-center text-sm font-bold text-white transition hover:brightness-105 ${
-                isOutOfStock
-                  ? "pointer-events-none opacity-50"
-                  : ""
-              }`}
-            >
-              {isOutOfStock
-                ? "Out of Stock"
-                : "Customize & Preview"}
-            </Link>
+  href={getCustomizeUrl(product, {
+    quantity,
+    base: selectedBase,
+    color: selectedColor,
+  })}
+  className={`rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-5 py-4 text-center text-sm font-bold text-white transition hover:brightness-105 ${
+    isOutOfStock
+      ? "pointer-events-none opacity-50"
+      : ""
+  }`}
+>
+  {isOutOfStock
+    ? "Out of Stock"
+    : "Customize & Preview"}
+</Link>
 
             {/* <button
               type="button"

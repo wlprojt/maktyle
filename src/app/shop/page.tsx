@@ -7,10 +7,14 @@ import {
   Heart,
   KeyRound,
   LampDesk,
-  Package,
   Phone,
   Shirt,
   ShoppingBag,
+  Frame,
+  Coffee,
+  Smartphone,
+  PanelTopBottomDashed,
+  Milk,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
@@ -66,12 +70,12 @@ const categories = [
   {
     name: "Photo Frames",
     value: "Photo Frame",
-    icon: Package,
+    icon: Frame,
   },
   {
     name: "Mugs",
     value: "Mug",
-    icon: ShoppingBag,
+    icon: Coffee,
   },
   {
     name: "LED Lamps",
@@ -81,12 +85,12 @@ const categories = [
   {
     name: "Phone Cases",
     value: "Phone Case",
-    icon: Phone,
+    icon: Smartphone,
   },
   {
     name: "Pillows",
     value: "Pillow",
-    icon: Package,
+    icon: PanelTopBottomDashed,
   },
   {
     name: "T-Shirts",
@@ -96,7 +100,7 @@ const categories = [
   {
     name: "Bottles",
     value: "Bottle",
-    icon: Package,
+    icon: Milk,
   },
   {
     name: "Keychains",
