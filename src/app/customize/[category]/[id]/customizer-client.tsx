@@ -45,6 +45,7 @@ import {
   useState,
 } from "react";
 import { toPng } from "html-to-image";
+import { createClient } from "@/lib/supabase/client";
 
 type Product = {
   id: string;
@@ -181,6 +182,24 @@ function createId() {
   return crypto.randomUUID();
 }
 
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, encodedData] = dataUrl.split(",");
+
+  if (!header || !encodedData) {
+    throw new Error("Invalid image data.");
+  }
+
+  const mimeType = header.match(/data:(.*?);base64/)?.[1] ?? "image/png";
+  const binary = atob(encodedData);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+}
+
 function cloneElements(elements: DesignElement[]) {
   return elements.map((element) => ({ ...element }));
 }
@@ -192,7 +211,10 @@ function normalizeCategory(category: string) {
     .replace(/^-|-$/g, "");
 }
 
-function getFrameOptions(category: string, productPreview: string | null): FrameConfig[] {
+function getFrameOptions(
+  category: string,
+  productPreview: string | null,
+): FrameConfig[] {
   const value = normalizeCategory(category);
 
   const option = (
@@ -200,74 +222,360 @@ function getFrameOptions(category: string, productPreview: string | null): Frame
     name: string,
     price: number,
     config: Omit<FrameConfig, "id" | "name" | "price" | "previewImage">,
-  ): FrameConfig => ({ id, name, price, previewImage: productPreview, ...config });
+  ): FrameConfig => ({
+    id,
+    name,
+    price,
+    previewImage: productPreview,
+    ...config,
+  });
 
   if (value.includes("phone") || value.includes("case")) {
     return [
-      option("standard", "Standard", 0, { width: 320, height: 640, radius: 48, thumbnailShape: "rounded", printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 } }),
-      option("clear", "Clear", 80, { width: 320, height: 640, radius: 48, thumbnailShape: "rounded", printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 } }),
-      option("magsafe", "MagSafe", 150, { width: 320, height: 640, radius: 48, thumbnailShape: "rounded", printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 } }),
+      option("standard", "Standard", 0, {
+        width: 320,
+        height: 640,
+        radius: 48,
+        thumbnailShape: "rounded",
+        printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 },
+      }),
+      option("clear", "Clear", 80, {
+        width: 320,
+        height: 640,
+        radius: 48,
+        thumbnailShape: "rounded",
+        printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 },
+      }),
+      option("magsafe", "MagSafe", 150, {
+        width: 320,
+        height: 640,
+        radius: 48,
+        thumbnailShape: "rounded",
+        printArea: { x: 18, y: 18, width: 284, height: 604, radius: 42 },
+      }),
     ];
   }
 
   if (value.includes("tshirt") || value.includes("t-shirt")) {
     return [
-      option("front", "Front", 0, { width: 520, height: 620, radius: 22, thumbnailShape: "shirt", printArea: { x: 110, y: 135, width: 300, height: 350, radius: 10 } }),
-      option("back", "Back", 50, { width: 520, height: 620, radius: 22, thumbnailShape: "shirt", printArea: { x: 110, y: 120, width: 300, height: 370, radius: 10 } }),
-      option("pocket", "Pocket", 30, { width: 520, height: 620, radius: 22, thumbnailShape: "shirt", printArea: { x: 285, y: 155, width: 115, height: 135, radius: 8 } }),
+      option("front", "Front", 0, {
+        width: 520,
+        height: 620,
+        radius: 22,
+        thumbnailShape: "shirt",
+        printArea: { x: 110, y: 135, width: 300, height: 350, radius: 10 },
+      }),
+      option("back", "Back", 50, {
+        width: 520,
+        height: 620,
+        radius: 22,
+        thumbnailShape: "shirt",
+        printArea: { x: 110, y: 120, width: 300, height: 370, radius: 10 },
+      }),
+      option("pocket", "Pocket", 30, {
+        width: 520,
+        height: 620,
+        radius: 22,
+        thumbnailShape: "shirt",
+        printArea: { x: 285, y: 155, width: 115, height: 135, radius: 8 },
+      }),
     ];
   }
 
   if (value.includes("mug")) {
     return [
-      option("center", "Center", 0, { width: 620, height: 420, radius: 28, thumbnailShape: "mug", printArea: { x: 145, y: 105, width: 310, height: 205, radius: 18 } }),
-      option("left", "Left Side", 0, { width: 620, height: 420, radius: 28, thumbnailShape: "mug", printArea: { x: 105, y: 105, width: 270, height: 205, radius: 18 } }),
-      option("wrap", "Full Wrap", 100, { width: 620, height: 420, radius: 28, thumbnailShape: "mug", printArea: { x: 70, y: 90, width: 450, height: 235, radius: 24 } }),
+      option("center", "Center", 0, {
+        width: 620,
+        height: 420,
+        radius: 28,
+        thumbnailShape: "mug",
+        printArea: { x: 145, y: 105, width: 310, height: 205, radius: 18 },
+      }),
+      option("left", "Left Side", 0, {
+        width: 620,
+        height: 420,
+        radius: 28,
+        thumbnailShape: "mug",
+        printArea: { x: 105, y: 105, width: 270, height: 205, radius: 18 },
+      }),
+      option("wrap", "Full Wrap", 100, {
+        width: 620,
+        height: 420,
+        radius: 28,
+        thumbnailShape: "mug",
+        printArea: { x: 70, y: 90, width: 450, height: 235, radius: 24 },
+      }),
     ];
   }
 
   if (value.includes("bottle")) {
     return [
-      option("tall", "Tall", 0, { width: 360, height: 650, radius: 34, thumbnailShape: "bottle", printArea: { x: 84, y: 135, width: 192, height: 380, radius: 28 } }),
-      option("wide", "Wide", 60, { width: 390, height: 620, radius: 38, thumbnailShape: "bottle", printArea: { x: 75, y: 145, width: 240, height: 330, radius: 30 } }),
+      option("tall", "Tall", 0, {
+        width: 360,
+        height: 650,
+        radius: 34,
+        thumbnailShape: "bottle",
+        printArea: { x: 84, y: 135, width: 192, height: 380, radius: 28 },
+      }),
+      option("wide", "Wide", 60, {
+        width: 390,
+        height: 620,
+        radius: 38,
+        thumbnailShape: "bottle",
+        printArea: { x: 75, y: 145, width: 240, height: 330, radius: 30 },
+      }),
     ];
   }
 
   if (value.includes("pillow")) {
     return [
-      option("square", "Square", 0, { width: 560, height: 560, radius: 60, thumbnailShape: "square", printArea: { x: 45, y: 45, width: 470, height: 470, radius: 48 } }),
-      option("heart", "Heart", 100, { width: 560, height: 560, radius: 20, thumbnailShape: "heart", printArea: { x: 55, y: 55, width: 450, height: 440, radius: 0, clipPath: "polygon(50% 92%, 8% 52%, 5% 30%, 16% 12%, 35% 8%, 50% 23%, 65% 8%, 84% 12%, 95% 30%, 92% 52%)" } }),
-      option("round", "Round", 80, { width: 560, height: 560, radius: 280, thumbnailShape: "circle", printArea: { x: 45, y: 45, width: 470, height: 470, radius: 235, clipPath: "circle(50% at 50% 50%)" } }),
+      option("square", "Square", 0, {
+        width: 560,
+        height: 560,
+        radius: 60,
+        thumbnailShape: "square",
+        printArea: { x: 45, y: 45, width: 470, height: 470, radius: 48 },
+      }),
+      option("heart", "Heart", 100, {
+        width: 560,
+        height: 560,
+        radius: 20,
+        thumbnailShape: "heart",
+        printArea: {
+          x: 55,
+          y: 55,
+          width: 450,
+          height: 440,
+          radius: 0,
+          clipPath:
+            "polygon(50% 92%, 8% 52%, 5% 30%, 16% 12%, 35% 8%, 50% 23%, 65% 8%, 84% 12%, 95% 30%, 92% 52%)",
+        },
+      }),
+      option("round", "Round", 80, {
+        width: 560,
+        height: 560,
+        radius: 280,
+        thumbnailShape: "circle",
+        printArea: {
+          x: 45,
+          y: 45,
+          width: 470,
+          height: 470,
+          radius: 235,
+          clipPath: "circle(50% at 50% 50%)",
+        },
+      }),
     ];
   }
 
   if (value.includes("keychain") || value.includes("key-chain")) {
     return [
-      option("circle", "Circle", 0, { width: 460, height: 460, radius: 230, thumbnailShape: "circle", printArea: { x: 55, y: 55, width: 350, height: 350, radius: 175, clipPath: "circle(50% at 50% 50%)" } }),
-      option("heart", "Heart", 40, { width: 460, height: 460, radius: 20, thumbnailShape: "heart", printArea: { x: 45, y: 50, width: 370, height: 340, radius: 0, clipPath: "polygon(50% 95%, 8% 55%, 4% 31%, 15% 10%, 35% 7%, 50% 22%, 65% 7%, 85% 10%, 96% 31%, 92% 55%)" } }),
-      option("rectangle", "Rectangle", 30, { width: 500, height: 360, radius: 35, thumbnailShape: "rectangle", printArea: { x: 45, y: 45, width: 410, height: 270, radius: 28 } }),
+      option("circle", "Circle", 0, {
+        width: 460,
+        height: 460,
+        radius: 230,
+        thumbnailShape: "circle",
+        printArea: {
+          x: 55,
+          y: 55,
+          width: 350,
+          height: 350,
+          radius: 175,
+          clipPath: "circle(50% at 50% 50%)",
+        },
+      }),
+      option("heart", "Heart", 40, {
+        width: 460,
+        height: 460,
+        radius: 20,
+        thumbnailShape: "heart",
+        printArea: {
+          x: 45,
+          y: 50,
+          width: 370,
+          height: 340,
+          radius: 0,
+          clipPath:
+            "polygon(50% 95%, 8% 55%, 4% 31%, 15% 10%, 35% 7%, 50% 22%, 65% 7%, 85% 10%, 96% 31%, 92% 55%)",
+        },
+      }),
+      option("rectangle", "Rectangle", 30, {
+        width: 500,
+        height: 360,
+        radius: 35,
+        thumbnailShape: "rectangle",
+        printArea: { x: 45, y: 45, width: 410, height: 270, radius: 28 },
+      }),
     ];
   }
 
   if (value.includes("led") || value.includes("lamp")) {
     return [
-      option("heart", "Heart", 0, { width: 500, height: 620, radius: 34, thumbnailShape: "heart", printArea: { x: 70, y: 45, width: 360, height: 430, radius: 0, clipPath: "polygon(50% 96%, 7% 55%, 4% 30%, 16% 9%, 35% 6%, 50% 22%, 65% 6%, 84% 9%, 96% 30%, 93% 55%)" } }),
-      option("circle", "Circle", 50, { width: 500, height: 620, radius: 34, thumbnailShape: "circle", printArea: { x: 70, y: 45, width: 360, height: 420, radius: 180, clipPath: "circle(50% at 50% 50%)" } }),
-      option("square", "Square", 50, { width: 500, height: 620, radius: 34, thumbnailShape: "square", printArea: { x: 72, y: 55, width: 356, height: 410, radius: 28 } }),
-      option("hexagon", "Hexagon", 80, { width: 500, height: 620, radius: 34, thumbnailShape: "hexagon", printArea: { x: 75, y: 42, width: 350, height: 430, radius: 0, clipPath: "polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0% 50%)" } }),
-      option("star", "Star", 100, { width: 500, height: 620, radius: 34, thumbnailShape: "star", printArea: { x: 60, y: 35, width: 380, height: 450, radius: 0, clipPath: "polygon(50% 1%, 61% 35%, 98% 35%, 68% 57%, 79% 94%, 50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 35%)" } }),
-      option("moon", "Moon", 120, { width: 500, height: 620, radius: 34, thumbnailShape: "moon", printArea: { x: 80, y: 35, width: 340, height: 450, radius: 170, clipPath: "polygon(72% 0%, 51% 12%, 38% 32%, 34% 54%, 42% 76%, 60% 92%, 82% 100%, 63% 96%, 43% 86%, 25% 68%, 15% 46%, 17% 25%, 33% 8%, 52% 1%)" } }),
-      option("butterfly", "Butterfly", 140, { width: 520, height: 620, radius: 34, thumbnailShape: "butterfly", printArea: { x: 48, y: 70, width: 424, height: 390, radius: 0, clipPath: "polygon(50% 34%, 37% 8%, 8% 0%, 2% 28%, 20% 52%, 5% 82%, 35% 76%, 50% 98%, 65% 76%, 95% 82%, 80% 52%, 98% 28%, 92% 0%, 63% 8%)" } }),
-      option("tree", "Tree", 150, { width: 500, height: 620, radius: 34, thumbnailShape: "tree", printArea: { x: 80, y: 30, width: 340, height: 460, radius: 0, clipPath: "polygon(50% 0%, 72% 30%, 61% 30%, 85% 62%, 68% 62%, 96% 92%, 58% 92%, 58% 100%, 42% 100%, 42% 92%, 4% 92%, 32% 62%, 15% 62%, 39% 30%, 28% 30%)" } }),
+      option("heart", "Heart", 0, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "heart",
+        printArea: {
+          x: 70,
+          y: 45,
+          width: 360,
+          height: 430,
+          radius: 0,
+          clipPath:
+            "polygon(50% 96%, 7% 55%, 4% 30%, 16% 9%, 35% 6%, 50% 22%, 65% 6%, 84% 9%, 96% 30%, 93% 55%)",
+        },
+      }),
+      option("circle", "Circle", 50, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "circle",
+        printArea: {
+          x: 70,
+          y: 45,
+          width: 360,
+          height: 420,
+          radius: 180,
+          clipPath: "circle(50% at 50% 50%)",
+        },
+      }),
+      option("square", "Square", 50, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "square",
+        printArea: { x: 72, y: 55, width: 356, height: 410, radius: 28 },
+      }),
+      option("hexagon", "Hexagon", 80, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "hexagon",
+        printArea: {
+          x: 75,
+          y: 42,
+          width: 350,
+          height: 430,
+          radius: 0,
+          clipPath:
+            "polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0% 50%)",
+        },
+      }),
+      option("star", "Star", 100, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "star",
+        printArea: {
+          x: 60,
+          y: 35,
+          width: 380,
+          height: 450,
+          radius: 0,
+          clipPath:
+            "polygon(50% 1%, 61% 35%, 98% 35%, 68% 57%, 79% 94%, 50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 35%)",
+        },
+      }),
+      option("moon", "Moon", 120, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "moon",
+        printArea: {
+          x: 80,
+          y: 35,
+          width: 340,
+          height: 450,
+          radius: 170,
+          clipPath:
+            "polygon(72% 0%, 51% 12%, 38% 32%, 34% 54%, 42% 76%, 60% 92%, 82% 100%, 63% 96%, 43% 86%, 25% 68%, 15% 46%, 17% 25%, 33% 8%, 52% 1%)",
+        },
+      }),
+      option("butterfly", "Butterfly", 140, {
+        width: 520,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "butterfly",
+        printArea: {
+          x: 48,
+          y: 70,
+          width: 424,
+          height: 390,
+          radius: 0,
+          clipPath:
+            "polygon(50% 34%, 37% 8%, 8% 0%, 2% 28%, 20% 52%, 5% 82%, 35% 76%, 50% 98%, 65% 76%, 95% 82%, 80% 52%, 98% 28%, 92% 0%, 63% 8%)",
+        },
+      }),
+      option("tree", "Tree", 150, {
+        width: 500,
+        height: 620,
+        radius: 34,
+        thumbnailShape: "tree",
+        printArea: {
+          x: 80,
+          y: 30,
+          width: 340,
+          height: 460,
+          radius: 0,
+          clipPath:
+            "polygon(50% 0%, 72% 30%, 61% 30%, 85% 62%, 68% 62%, 96% 92%, 58% 92%, 58% 100%, 42% 100%, 42% 92%, 4% 92%, 32% 62%, 15% 62%, 39% 30%, 28% 30%)",
+        },
+      }),
     ];
   }
 
   return [
-    option("portrait", "Portrait", 0, { width: 520, height: 700, radius: 20, thumbnailShape: "portrait", printArea: { x: 55, y: 55, width: 410, height: 590, radius: 4 } }),
-    option("landscape", "Landscape", 80, { width: 700, height: 520, radius: 20, thumbnailShape: "landscape", printArea: { x: 55, y: 55, width: 590, height: 410, radius: 4 } }),
-    option("square", "Square", 50, { width: 580, height: 580, radius: 20, thumbnailShape: "square", printArea: { x: 55, y: 55, width: 470, height: 470, radius: 4 } }),
-    option("circle", "Circle", 100, { width: 580, height: 580, radius: 290, thumbnailShape: "circle", printArea: { x: 55, y: 55, width: 470, height: 470, radius: 235, clipPath: "circle(50% at 50% 50%)" } }),
-    option("heart", "Heart", 130, { width: 580, height: 580, radius: 20, thumbnailShape: "heart", printArea: { x: 55, y: 55, width: 470, height: 450, radius: 0, clipPath: "polygon(50% 95%, 8% 55%, 4% 31%, 15% 10%, 35% 7%, 50% 22%, 65% 7%, 85% 10%, 96% 31%, 92% 55%)" } }),
+    option("portrait", "Portrait", 0, {
+      width: 520,
+      height: 700,
+      radius: 20,
+      thumbnailShape: "portrait",
+      printArea: { x: 55, y: 55, width: 410, height: 590, radius: 4 },
+    }),
+    option("landscape", "Landscape", 80, {
+      width: 700,
+      height: 520,
+      radius: 20,
+      thumbnailShape: "landscape",
+      printArea: { x: 55, y: 55, width: 590, height: 410, radius: 4 },
+    }),
+    option("square", "Square", 50, {
+      width: 580,
+      height: 580,
+      radius: 20,
+      thumbnailShape: "square",
+      printArea: { x: 55, y: 55, width: 470, height: 470, radius: 4 },
+    }),
+    option("circle", "Circle", 100, {
+      width: 580,
+      height: 580,
+      radius: 290,
+      thumbnailShape: "circle",
+      printArea: {
+        x: 55,
+        y: 55,
+        width: 470,
+        height: 470,
+        radius: 235,
+        clipPath: "circle(50% at 50% 50%)",
+      },
+    }),
+    option("heart", "Heart", 130, {
+      width: 580,
+      height: 580,
+      radius: 20,
+      thumbnailShape: "heart",
+      printArea: {
+        x: 55,
+        y: 55,
+        width: 470,
+        height: 450,
+        radius: 0,
+        clipPath:
+          "polygon(50% 95%, 8% 55%, 4% 31%, 15% 10%, 35% 7%, 50% 22%, 65% 7%, 85% 10%, 96% 31%, 92% 55%)",
+      },
+    }),
   ];
 }
 function shapeStyle(element: ShapeElement): CSSProperties {
@@ -315,10 +623,14 @@ export default function CustomizerClient({
     [product.category, product.previewImage],
   );
   const [selectedFrameId, setSelectedFrameId] = useState(
-    frameOptions.find((item) => item.name.toLowerCase() === initialBase.toLowerCase())?.id ?? frameOptions[0].id,
+    frameOptions.find(
+      (item) => item.name.toLowerCase() === initialBase.toLowerCase(),
+    )?.id ?? frameOptions[0].id,
   );
   const frame = useMemo(
-    () => frameOptions.find((item) => item.id === selectedFrameId) ?? frameOptions[0],
+    () =>
+      frameOptions.find((item) => item.id === selectedFrameId) ??
+      frameOptions[0],
     [frameOptions, selectedFrameId],
   );
 
@@ -335,6 +647,7 @@ export default function CustomizerClient({
   const [mobilePanel, setMobilePanel] = useState<
     "add" | "layers" | "properties" | null
   >(null);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const selectedElement = useMemo(
     () => elements.find((element) => element.id === selectedId) ?? null,
@@ -444,84 +757,79 @@ export default function CustomizerClient({
   }
 
   async function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-      } else {
-        reject(new Error(`Unable to read ${file.name}`));
-      }
-    };
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error(`Unable to read ${file.name}`));
+        }
+      };
 
-    reader.onerror = () => {
-      reject(reader.error ?? new Error(`Unable to read ${file.name}`));
-    };
+      reader.onerror = () => {
+        reject(reader.error ?? new Error(`Unable to read ${file.name}`));
+      };
 
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handleImageUpload(
-  event: ChangeEvent<HTMLInputElement>,
-) {
-  const input = event.target;
-
-  const files = Array.from(input.files ?? []).filter((file) =>
-    file.type.startsWith("image/"),
-  );
-
-  if (!files.length) return;
-
-  try {
-    saveHistorySnapshot();
-
-    const maxZ = nextZIndex();
-
-    const newElements: ImageElement[] = await Promise.all(
-      files.map(async (file, index) => ({
-        id: createId(),
-        type: "image" as const,
-        name: file.name,
-        src: await fileToDataUrl(file),
-
-        x: 35 + index * 12,
-        y: 35 + index * 12,
-        width: 190,
-        height: 190,
-
-        rotation: 0,
-        opacity: 1,
-        zIndex: maxZ + index,
-
-        hidden: false,
-        locked: false,
-
-        fit: "contain" as const,
-        flipX: false,
-        flipY: false,
-      })),
-    );
-
-    setElements((previous) => [
-      ...previous,
-      ...newElements,
-    ]);
-
-    setSelectedId(newElements.at(-1)?.id ?? null);
-  } catch (error) {
-    console.error("Image upload error:", error);
-
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Unable to read the selected image.",
-    );
-  } finally {
-    input.value = "";
+      reader.readAsDataURL(file);
+    });
   }
-}
+
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.target;
+
+    const files = Array.from(input.files ?? []).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+
+    if (!files.length) return;
+
+    try {
+      saveHistorySnapshot();
+
+      const maxZ = nextZIndex();
+
+      const newElements: ImageElement[] = await Promise.all(
+        files.map(async (file, index) => ({
+          id: createId(),
+          type: "image" as const,
+          name: file.name,
+          src: await fileToDataUrl(file),
+
+          x: 35 + index * 12,
+          y: 35 + index * 12,
+          width: 190,
+          height: 190,
+
+          rotation: 0,
+          opacity: 1,
+          zIndex: maxZ + index,
+
+          hidden: false,
+          locked: false,
+
+          fit: "contain" as const,
+          flipX: false,
+          flipY: false,
+        })),
+      );
+
+      setElements((previous) => [...previous, ...newElements]);
+
+      setSelectedId(newElements.at(-1)?.id ?? null);
+    } catch (error) {
+      console.error("Image upload error:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Unable to read the selected image.",
+      );
+    } finally {
+      input.value = "";
+    }
+  }
 
   function startDragging(
     event: ReactPointerEvent<HTMLDivElement>,
@@ -718,64 +1026,248 @@ async function handleImageUpload(
   }
 
   async function exportDesign() {
-  if (!canvasRef.current) return;
+    if (!canvasRef.current) return;
 
-  const currentSelection = selectedId;
-  setSelectedId(null);
+    const currentSelection = selectedId;
+    setSelectedId(null);
 
-  try {
-    await new Promise((resolve) =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(resolve)
-      )
-    );
+    try {
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
 
-    const dataUrl = await toPng(canvasRef.current, {
-      cacheBust: true,
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      skipFonts: true,
-      imagePlaceholder:
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X4t8AAAAASUVORK5CYII=",
-    });
+      const dataUrl = await toPng(canvasRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        skipFonts: true,
+        imagePlaceholder:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X4t8AAAAASUVORK5CYII=",
+      });
 
-    const link = document.createElement("a");
-    link.download = `${product.title}.png`;
-    link.href = dataUrl;
-    link.click();
-  } catch (e) {
-    console.error(e);
-    alert(e instanceof Error ? e.message : "Export failed");
-  } finally {
-    setSelectedId(currentSelection);
+      const link = document.createElement("a");
+      link.download = `${product.title}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setSelectedId(currentSelection);
+    }
   }
-}
 
-  function addToCart() {
-    const existingCart = JSON.parse(
-      localStorage.getItem("maktyle-cart") ?? "[]",
+  async function uploadDesignImages({
+    userId,
+    designId,
+  }: {
+    userId: string;
+    designId: string;
+  }): Promise<DesignElement[]> {
+    const supabase = createClient();
+
+    return Promise.all(
+      elements.map(async (element, index) => {
+        if (element.type !== "image" || !element.src) {
+          return element;
+        }
+
+        if (
+          element.src.startsWith("https://") ||
+          element.src.startsWith("http://")
+        ) {
+          return element;
+        }
+
+        let imageBlob: Blob;
+
+        if (element.src.startsWith("data:")) {
+          imageBlob = dataUrlToBlob(element.src);
+        } else if (element.src.startsWith("blob:")) {
+          const response = await fetch(element.src);
+
+          if (!response.ok) {
+            throw new Error(`Unable to read ${element.name}.`);
+          }
+
+          imageBlob = await response.blob();
+        } else {
+          return element;
+        }
+
+        const rawExtension = imageBlob.type.split("/")[1] ?? "png";
+        const extension = rawExtension === "jpeg" ? "jpg" : rawExtension;
+        const storagePath = `${userId}/${designId}/images/${index}-${createId()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("custom-designs")
+          .upload(storagePath, imageBlob, {
+            contentType: imageBlob.type,
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("custom-designs")
+          .getPublicUrl(storagePath);
+
+        return {
+          ...element,
+          src: publicUrlData.publicUrl,
+        };
+      }),
     );
-    localStorage.setItem(
-      "maktyle-cart",
-      JSON.stringify([
-        ...existingCart,
-        {
-          id: createId(),
-          productId: product.id,
-          title: product.title,
-          category: product.category,
-          quantity,
-          unitPrice,
-          totalPrice,
-          base: frame.name,
-          selectedFrameId: frame.id,
-          framePrice: frame.price,
-          backgroundColor,
-          elements,
+  }
+
+  async function createAndUploadPreview({
+    userId,
+    designId,
+  }: {
+    userId: string;
+    designId: string;
+  }): Promise<string> {
+    if (!canvasRef.current) {
+      throw new Error("Design canvas not found.");
+    }
+
+    const previousSelection = selectedId;
+    setSelectedId(null);
+
+    try {
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve());
+        });
+      });
+
+      const dataUrl = await toPng(canvasRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        skipFonts: true,
+        imagePlaceholder:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X4t8AAAAASUVORK5CYII=",
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          return node.dataset.exportIgnore !== "true";
         },
-      ]),
-    );
-    alert("Customized product added to cart.");
+      });
+
+      const previewBlob = dataUrlToBlob(dataUrl);
+      const storagePath = `${userId}/${designId}/preview.png`;
+      const supabase = createClient();
+
+      const { error: uploadError } = await supabase.storage
+        .from("custom-designs")
+        .upload(storagePath, previewBlob, {
+          contentType: "image/png",
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(`Preview upload failed: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("custom-designs")
+        .getPublicUrl(storagePath);
+
+      return `${publicUrlData.publicUrl}?v=${Date.now()}`;
+    } finally {
+      setSelectedId(previousSelection);
+    }
+  }
+
+  async function addToCart() {
+    if (addingToCart || isOutOfStock) return;
+
+    setAddingToCart(true);
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw new Error(userError.message);
+      }
+
+      if (!user) {
+        const redirectPath = `${window.location.pathname}${window.location.search}`;
+        window.location.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+        return;
+      }
+
+      const designId = createId();
+
+      const uploadedElements = await uploadDesignImages({
+        userId: user.id,
+        designId,
+      });
+
+      const previewUrl = await createAndUploadPreview({
+        userId: user.id,
+        designId,
+      });
+
+      const { data: savedDesign, error: designError } = await supabase
+        .from("custom_designs")
+        .insert({
+          id: designId,
+          user_id: user.id,
+          product_id: product.id,
+          product_title: product.title,
+          product_category: product.category,
+          product_image_url: product.previewImage,
+          frame_id: frame.id,
+          frame_name: frame.name,
+          frame_price: frame.price,
+          frame_config: frame,
+          background_color: backgroundColor,
+          design_elements: uploadedElements,
+          preview_url: previewUrl,
+          quantity,
+          unit_price: unitPrice,
+          total_price: totalPrice,
+        })
+        .select("id")
+        .single();
+
+      if (designError) {
+        throw new Error(`Design save failed: ${designError.message}`);
+      }
+
+      const { error: cartError } = await supabase.from("cart_items").insert({
+        user_id: user.id,
+        design_id: savedDesign.id,
+        product_id: product.id,
+        quantity,
+        unit_price: unitPrice,
+      });
+
+      if (cartError) {
+        throw new Error(`Cart save failed: ${cartError.message}`);
+      }
+
+      window.dispatchEvent(new Event("maktyle-cart-updated"));
+      window.location.href = "/cart";
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Unable to add the customized product to cart.",
+      );
+    } finally {
+      setAddingToCart(false);
+    }
   }
 
   const renderLayerIcon = (element: DesignElement) => {
@@ -1195,15 +1687,16 @@ async function handleImageUpload(
               Save
             </button>
             <button
+              type="button"
               onClick={addToCart}
-              disabled={isOutOfStock}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              disabled={isOutOfStock || addingToCart}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8549e8] to-[#f36a47] px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingCart size={17} />
               <span className="hidden sm:inline">
                 ₹{totalPrice.toLocaleString("en-IN")}
               </span>
-              Add
+              {addingToCart ? "Saving..." : "Add"}
             </button>
           </div>
         </div>
@@ -1259,7 +1752,10 @@ async function handleImageUpload(
           <div className="border-b border-slate-200 bg-white px-3 py-3 sm:px-4">
             <div className="mb-2 flex items-center justify-between">
               <p className="panel-title">Choose frame shape</p>
-              <span className="text-xs font-bold text-[#8549e8]">{frame.name}{frame.price > 0 ? ` · +₹${frame.price}` : ""}</span>
+              <span className="text-xs font-bold text-[#8549e8]">
+                {frame.name}
+                {frame.price > 0 ? ` · +₹${frame.price}` : ""}
+              </span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {frameOptions.map((option) => (
@@ -1278,8 +1774,12 @@ async function handleImageUpload(
                   }`}
                 >
                   <FrameThumbnail frame={option} />
-                  <p className="mt-2 truncate text-[11px] font-black">{option.name}</p>
-                  <p className="text-[10px] text-slate-500">{option.price > 0 ? `+₹${option.price}` : "Included"}</p>
+                  <p className="mt-2 truncate text-[11px] font-black">
+                    {option.name}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {option.price > 0 ? `+₹${option.price}` : "Included"}
+                  </p>
                 </button>
               ))}
             </div>
@@ -1433,6 +1933,7 @@ async function handleImageUpload(
                     />
                   )}
                   <div
+                    data-export-ignore="true"
                     className="pointer-events-none absolute z-30 border-2 border-dashed border-purple-400/70"
                     style={{
                       left: frame.printArea.x,
@@ -1492,7 +1993,9 @@ async function handleImageUpload(
             <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold">
               <div className="flex items-center justify-between">
                 <span>{frame.name}</span>
-                <span className="text-[#8549e8]">{frame.price > 0 ? `+₹${frame.price}` : "Included"}</span>
+                <span className="text-[#8549e8]">
+                  {frame.price > 0 ? `+₹${frame.price}` : "Included"}
+                </span>
               </div>
             </div>
             <Quantity
@@ -1577,7 +2080,6 @@ async function handleImageUpload(
   );
 }
 
-
 function FrameThumbnail({ frame }: { frame: FrameConfig }) {
   const clip = frame.printArea.clipPath;
   const ratio = frame.width / frame.height;
@@ -1591,7 +2093,10 @@ function FrameThumbnail({ frame }: { frame: FrameConfig }) {
         style={{
           width,
           height,
-          borderRadius: frame.printArea.radius > frame.printArea.width / 3 ? "50%" : Math.min(12, frame.printArea.radius / 4),
+          borderRadius:
+            frame.printArea.radius > frame.printArea.width / 3
+              ? "50%"
+              : Math.min(12, frame.printArea.radius / 4),
           clipPath: clip,
         }}
       />

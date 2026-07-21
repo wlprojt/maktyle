@@ -56,12 +56,14 @@ export default function Navbar() {
           </button>
           </Link>
 
+          <Link href="/cart">
           <button className="relative">
             <ShoppingCart size={26} strokeWidth={2} />
             <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-xs font-bold text-white">
               0
             </span>
           </button>
+          </Link>
         </div>
       </div>
     </header>
