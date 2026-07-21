@@ -443,37 +443,85 @@ export default function CustomizerClient({
     setSelectedId(element.id);
   }
 
-  function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []).filter((file) =>
-      file.type.startsWith("image/"),
-    );
-    if (!files.length) return;
+  async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error(`Unable to read ${file.name}`));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error(`Unable to read ${file.name}`));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleImageUpload(
+  event: ChangeEvent<HTMLInputElement>,
+) {
+  const input = event.target;
+
+  const files = Array.from(input.files ?? []).filter((file) =>
+    file.type.startsWith("image/"),
+  );
+
+  if (!files.length) return;
+
+  try {
     saveHistorySnapshot();
-    const maxZ = nextZIndex();
-    const newElements: ImageElement[] = files.map((file, index) => ({
-      id: createId(),
-      type: "image",
-      name: file.name,
-      src: URL.createObjectURL(file),
-      x: 35 + index * 12,
-      y: 35 + index * 12,
-      width: 190,
-      height: 190,
-      rotation: 0,
-      opacity: 1,
-      zIndex: maxZ + index,
-      hidden: false,
-      locked: false,
-      fit: "contain",
-      flipX: false,
-      flipY: false,
-    }));
 
-    setElements((previous) => [...previous, ...newElements]);
+    const maxZ = nextZIndex();
+
+    const newElements: ImageElement[] = await Promise.all(
+      files.map(async (file, index) => ({
+        id: createId(),
+        type: "image" as const,
+        name: file.name,
+        src: await fileToDataUrl(file),
+
+        x: 35 + index * 12,
+        y: 35 + index * 12,
+        width: 190,
+        height: 190,
+
+        rotation: 0,
+        opacity: 1,
+        zIndex: maxZ + index,
+
+        hidden: false,
+        locked: false,
+
+        fit: "contain" as const,
+        flipX: false,
+        flipY: false,
+      })),
+    );
+
+    setElements((previous) => [
+      ...previous,
+      ...newElements,
+    ]);
+
     setSelectedId(newElements.at(-1)?.id ?? null);
-    event.target.value = "";
+  } catch (error) {
+    console.error("Image upload error:", error);
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Unable to read the selected image.",
+    );
+  } finally {
+    input.value = "";
   }
+}
 
   function startDragging(
     event: ReactPointerEvent<HTMLDivElement>,
@@ -670,26 +718,38 @@ export default function CustomizerClient({
   }
 
   async function exportDesign() {
-    if (!canvasRef.current) return;
-    const currentSelection = selectedId;
-    setSelectedId(null);
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-    try {
-      const dataUrl = await toPng(canvasRef.current, {
-        cacheBust: true,
-        pixelRatio: 3,
-      });
-      const link = document.createElement("a");
-      link.download = `${product.title.toLowerCase().replaceAll(" ", "-")}-design.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error(error);
-      alert("Unable to export the design.");
-    } finally {
-      setSelectedId(currentSelection);
-    }
+  if (!canvasRef.current) return;
+
+  const currentSelection = selectedId;
+  setSelectedId(null);
+
+  try {
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(resolve)
+      )
+    );
+
+    const dataUrl = await toPng(canvasRef.current, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      skipFonts: true,
+      imagePlaceholder:
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X4t8AAAAASUVORK5CYII=",
+    });
+
+    const link = document.createElement("a");
+    link.download = `${product.title}.png`;
+    link.href = dataUrl;
+    link.click();
+  } catch (e) {
+    console.error(e);
+    alert(e instanceof Error ? e.message : "Export failed");
+  } finally {
+    setSelectedId(currentSelection);
   }
+}
 
   function addToCart() {
     const existingCart = JSON.parse(
