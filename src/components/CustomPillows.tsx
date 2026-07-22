@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import FavoriteButton from "./favorite-button";
 
 type ProductImage = {
   id: string;
@@ -24,6 +25,10 @@ type Product = {
 
 export default async function CustomPillows() {
   const supabase = await createClient();
+
+  const {
+  data: { user },
+} = await supabase.auth.getUser();
 
   const { data, error } = await supabase
     .from("products")
@@ -62,6 +67,19 @@ export default async function CustomPillows() {
   }
 
   const products = (data ?? []) as Product[];
+
+  const favoriteIds = new Set<string>();
+
+if (user && products.length > 0) {
+  const { data: favorites } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", user.id);
+
+  favorites?.forEach((item) => {
+    favoriteIds.add(item.product_id);
+  });
+}
 
   return (
     <section className="bg-[#faf8ff] px-5 pb-16 sm:pb-20">
@@ -131,8 +149,12 @@ export default async function CustomPillows() {
                   key={product.id}
                   className="group overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl"
                 >
-                  <Link href={`/product/${product.id}`}>
+                  {/* <Link href={`/product/${product.id}`}> */}
                   <div className="relative aspect-square overflow-hidden bg-[#f5f2f8]">
+                    <Link
+                          href={`/product/${product.id}`}
+                          className="block h-full w-full"
+                        >
                     {primaryImage ? (
                       <Image
                         src={primaryImage}
@@ -146,14 +168,15 @@ export default async function CustomPillows() {
                         No image
                       </div>
                     )}
+                    </Link>
 
-                    <button
-                      type="button"
-                      aria-label={`Add ${product.title} to wishlist`}
-                      className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md transition hover:text-pink-500"
-                    >
-                      <Heart size={17} />
-                    </button>
+                    <div className="absolute right-3 top-3 z-20">
+                      <FavoriteButton
+                        productId={product.id}
+                        initialIsFavorite={favoriteIds.has(product.id)}
+                        className="h-10 w-10 rounded-full bg-white/95 p-0 shadow-lg"
+                      />
+                    </div>
 
                     {hasDiscount && (
                       <span className="absolute left-3 top-3 rounded-full bg-purple-600 px-3 py-1 text-xs font-bold text-white">
@@ -173,9 +196,11 @@ export default async function CustomPillows() {
                       {product.category}
                     </p>
 
+                    <Link href={`/product/${product.id}`}>
                     <h3 className="mt-2 line-clamp-2 min-h-[48px] font-bold text-slate-900">
                       {product.title}
                     </h3>
+                    </Link>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span className="text-lg font-extrabold text-purple-600 sm:text-xl">
@@ -189,8 +214,8 @@ export default async function CustomPillows() {
                       )}
                     </div>
 
-                    <div
-                      // href={`/product/${product.id}`}
+                    <Link
+                          href={`/product/${product.id}`}
                       className={`mt-4 block rounded-xl py-3 text-center text-sm font-bold transition ${
                         Number(product.stock ?? 0) > 0
                           ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:brightness-110"
@@ -200,9 +225,9 @@ export default async function CustomPillows() {
                       {Number(product.stock ?? 0) > 0
                         ? "Customize Now"
                         : "Out of Stock"}
-                    </div>
+                    </Link>
                   </div>
-                  </Link>
+                  {/* </Link> */}
                 </article>
               );
             })}

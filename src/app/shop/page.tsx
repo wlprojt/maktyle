@@ -19,6 +19,7 @@ import {
 
 import { createClient } from "@/lib/supabase/server";
 import ShopSelect from "@/components/ShopSelect";
+import FavoriteButton from "@/components/favorite-button";
 
 export const metadata: Metadata = {
   title: "maktyle | Shop",
@@ -194,6 +195,10 @@ export default async function ShopPage({
 
   const supabase = await createClient();
 
+  const {
+  data: { user },
+} = await supabase.auth.getUser();
+
   const currentPage = Math.max(
   1,
   Number(params.page ?? 1)
@@ -291,6 +296,19 @@ const to = from + productLimit - 1;
 const totalPages = Math.ceil(
   totalProducts / productLimit
 );
+
+const favoriteIds = new Set<string>();
+
+if (user && products.length > 0) {
+  const { data: favorites } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", user.id);
+
+  favorites?.forEach((item) => {
+    favoriteIds.add(item.product_id);
+  });
+}
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
@@ -644,13 +662,13 @@ const totalPages = Math.ceil(
                           </span>
                         )}
 
-                        <button
-                          type="button"
-                          aria-label={`Add ${product.title} to wishlist`}
-                          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition hover:text-red-500 sm:right-3 sm:top-3 sm:h-10 sm:w-10"
-                        >
-                          <Heart size={16} />
-                        </button>
+                        <div className="absolute right-3 top-3 z-20">
+                          <FavoriteButton
+                            productId={product.id}
+                            initialIsFavorite={favoriteIds.has(product.id)}
+                            className="h-10 w-10 rounded-full bg-white/95 p-0 shadow-lg"
+                          />
+                        </div>
 
                         {isOutOfStock && (
                           <div className="absolute inset-x-2 bottom-2 rounded-lg bg-slate-950/80 px-2 py-1.5 text-center text-[10px] font-bold text-white backdrop-blur sm:inset-x-3 sm:bottom-3 sm:text-xs">
