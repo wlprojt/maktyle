@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CustomizerClient from "./customizer-client";
 
@@ -12,6 +12,14 @@ type PageProps = {
 export default async function CustomizePage({ params }: PageProps) {
   const { category, id } = await params;
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+      redirect("/login?redirect=/dashboard");
+    }
 
   const { data: product, error } = await supabase
     .from("products")
