@@ -19,32 +19,6 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="bg-[#0F172A] text-white">
-      {/* Newsletter */}
-      <div className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-5 py-10 lg:flex-row lg:px-8 overflow-hidden">
-          <div>
-            <h2 className="text-3xl font-bold">
-              Stay Updated 🎁
-            </h2>
-            <p className="mt-2 text-slate-300">
-              Get exclusive offers and new personalized gift ideas.
-            </p>
-          </div>
-
-          <div className="flex w-full max-w-lg rounded-full bg-white p-2">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 rounded-full px-3 md:px-5 text-gray-800 outline-none"
-            />
-
-            <button className="flex items-center rounded-full bg-purple-600 px-3 md:px-6 py-3 font-semibold transition hover:bg-purple-700">
-              Subscribe
-              <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Footer */}
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
@@ -147,7 +121,7 @@ export default function Footer() {
 
             <div className="flex gap-3">
               <Phone className="text-purple-400" size={18} />
-              <p>+91 98765 43210</p>
+              <p>+91 7970731851</p>
             </div>
 
             <div className="flex gap-3">
