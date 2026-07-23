@@ -16,6 +16,7 @@ import {
   useState,
 } from "react";
 import { getCustomizeUrl } from "@/lib/get-customize-url";
+import FavoriteButton from "@/components/favorite-button";
 
 type ProductImage = {
   id: string;
@@ -38,6 +39,7 @@ type ProductDetailsClientProps = {
     discountPercentage: number;
     images: ProductImage[];
   };
+  isFavorite: boolean;
 };
 
 const baseOptions = [
@@ -71,7 +73,7 @@ const colorOptions = [
 ];
 
 export default function ProductDetailsClient({
-  product,
+  product,isFavorite
 }: ProductDetailsClientProps) {
   const [selectedImage, setSelectedImage] = useState(
     product.images[0]?.image_url ?? ""
@@ -469,26 +471,12 @@ export default function ProductDetailsClient({
               Add to Cart
             </button> */}
 
-            <button
-              type="button"
-              onClick={() =>
-                setWishlist((current) => !current)
-              }
-              className={`flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
-                wishlist
-                  ? "bg-pink-50 text-pink-600"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Heart
-                size={18}
-                fill={wishlist ? "currentColor" : "none"}
-              />
-
-              {wishlist
-                ? "Added to Wishlist"
-                : "Add to Wishlist"}
-            </button>
+            <FavoriteButton
+  productId={product.id}
+  initialIsFavorite={isFavorite}
+  showText
+  className="w-full justify-center rounded-xl py-3"
+/>
           </div>
         </div>
       </div>

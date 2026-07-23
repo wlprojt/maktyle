@@ -38,17 +38,17 @@ export default function FavoriteButton({
       aria-label={
         isFavorite ? "Remove from favorites" : "Add to favorites"
       }
-      className={`inline-flex items-center justify-center gap-2 rounded-full border px-2 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
+      className={`inline-flex items-center justify-center gap-2 rounded-full border px-1 py-1 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
         isFavorite
           ? "border-pink-200 bg-pink-50 text-pink-600"
           : "border-slate-200 bg-white text-slate-700 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600"
       } ${className}`}
     >
       {isPending ? (
-        <Loader2 size={29} className="animate-spin" />
+        <Loader2 size={20} className="animate-spin" />
       ) : (
         <Heart
-          size={29}
+          size={20}
           fill={isFavorite ? "currentColor" : "none"}
         />
       )}

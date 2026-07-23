@@ -10,24 +10,25 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+import { removeFavorite } from "@/app/actions/favorites";
+
+type ProductImage = {
+  image_url: string | null;
+  is_primary: boolean | null;
+  display_order: number | null;
+};
 
 type Product = {
   id: string;
   title: string | null;
-  slug: string | null;
   price: number | string | null;
   sale_price: number | string | null;
   category: string | null;
   stock: number | null;
-  product_images:
-    | {
-        image_url: string | null;
-        is_primary: boolean | null;
-        display_order: number | null;
-      }[]
-    | null;
+  product_images: ProductImage[] | null;
 };
 
 type FavoriteRow = {
@@ -37,9 +38,11 @@ type FavoriteRow = {
   products: Product | Product[] | null;
 };
 
-type SearchParams = Promise<{
-  search?: string;
-}>;
+type FavoritesPageProps = {
+  searchParams: Promise<{
+    search?: string;
+  }>;
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -49,7 +52,7 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-function getProduct(favorite: FavoriteRow) {
+function getProduct(favorite: FavoriteRow): Product | null {
   if (Array.isArray(favorite.products)) {
     return favorite.products[0] ?? null;
   }
@@ -60,26 +63,33 @@ function getProduct(favorite: FavoriteRow) {
 function getPrimaryImage(product: Product) {
   const images = product.product_images ?? [];
 
-  const primaryImage = images.find((image) => image.is_primary);
-  const sortedImage = [...images].sort(
-    (a, b) =>
-      Number(a.display_order ?? 0) - Number(b.display_order ?? 0),
-  )[0];
+  const primaryImage = images.find(
+    (image) => image.is_primary && image.image_url,
+  );
 
-  return primaryImage?.image_url || sortedImage?.image_url || null;
+  if (primaryImage?.image_url) {
+    return primaryImage.image_url;
+  }
+
+  const sortedImages = [...images].sort(
+    (a, b) =>
+      Number(a.display_order ?? 0) -
+      Number(b.display_order ?? 0),
+  );
+
+  return (
+    sortedImages.find((image) => image.image_url)?.image_url ??
+    null
+  );
 }
 
 function getProductHref(product: Product) {
-  return product.slug
-    ? `/shop/${product.slug}`
-    : `/product/${product.id}`;
+  return `/product/${product.id}`;
 }
 
 export default async function FavoritesPage({
   searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+}: FavoritesPageProps) {
   const supabase = await createClient();
 
   const {
@@ -91,7 +101,8 @@ export default async function FavoritesPage({
   }
 
   const params = await searchParams;
-  const search = params.search?.trim().toLowerCase() || "";
+  const rawSearch = params.search?.trim() ?? "";
+  const search = rawSearch.toLowerCase();
 
   const { data, error } = await supabase
     .from("favorites")
@@ -102,7 +113,6 @@ export default async function FavoritesPage({
       products (
         id,
         title,
-        slug,
         price,
         sale_price,
         category,
@@ -115,13 +125,20 @@ export default async function FavoritesPage({
       )
     `)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false,
+    });
 
   if (error) {
-    console.error("Unable to load favorites:", error);
+    console.error("Unable to load favorites:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
   }
 
-  const favorites = ((data ?? []) as FavoriteRow[])
+  const allFavorites = ((data ?? []) as FavoriteRow[])
     .map((favorite) => ({
       ...favorite,
       product: getProduct(favorite),
@@ -132,24 +149,32 @@ export default async function FavoritesPage({
       ): favorite is FavoriteRow & {
         product: Product;
       } => Boolean(favorite.product),
-    )
-    .filter((favorite) => {
-      if (!search) return true;
+    );
 
-      return [
-        favorite.product.title,
-        favorite.product.category,
-      ].some((value) => value?.toLowerCase().includes(search));
-    });
+  const favorites = allFavorites.filter((favorite) => {
+    if (!search) {
+      return true;
+    }
+
+    const searchableValues = [
+      favorite.product.title,
+      favorite.product.category,
+    ];
+
+    return searchableValues.some((value) =>
+      value?.toLowerCase().includes(search),
+    );
+  });
 
   return (
     <main className="min-h-screen bg-[#faf9fc] text-slate-900">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
+        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 text-sm font-black text-[#8549e8]"
+              className="inline-flex items-center gap-2 text-sm font-black text-[#8549e8] transition hover:text-[#7440d0]"
             >
               <ArrowLeft size={17} />
               Back to dashboard
@@ -160,7 +185,8 @@ export default async function FavoritesPage({
             </h1>
 
             <p className="mt-2 text-sm text-slate-500 sm:text-base">
-              View your saved products and continue shopping anytime.
+              View your saved products and continue shopping
+              anytime.
             </p>
           </div>
 
@@ -173,6 +199,7 @@ export default async function FavoritesPage({
           </Link>
         </div>
 
+        {/* Summary */}
         <section className="mt-7 overflow-hidden rounded-3xl border border-pink-100 bg-gradient-to-br from-[#fff3f7] via-white to-[#f8f2ff] p-5 shadow-sm sm:p-7">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
             <div className="flex items-center gap-4">
@@ -186,8 +213,10 @@ export default async function FavoritesPage({
                 </p>
 
                 <h2 className="mt-1 text-2xl font-black">
-                  {favorites.length}{" "}
-                  {favorites.length === 1 ? "favorite" : "favorites"}
+                  {allFavorites.length}{" "}
+                  {allFavorites.length === 1
+                    ? "favorite"
+                    : "favorites"}
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
@@ -206,6 +235,7 @@ export default async function FavoritesPage({
           </div>
         </section>
 
+        {/* Search */}
         <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <form
             action="/dashboard/favorites"
@@ -220,27 +250,53 @@ export default async function FavoritesPage({
               <input
                 type="search"
                 name="search"
-                defaultValue={params.search || ""}
+                defaultValue={rawSearch}
                 placeholder="Search favorite products..."
                 className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-purple-300 focus:bg-white focus:ring-4 focus:ring-purple-100"
               />
             </div>
 
-            {search && (
-              <Link
-                href="/dashboard/favorites"
-                className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-600 transition hover:bg-purple-50 hover:text-[#8549e8]"
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-xl bg-[#8549e8] px-5 py-3 text-sm font-black text-white transition hover:bg-[#7440d0]"
               >
-                Clear search
-              </Link>
-            )}
+                Search
+              </button>
+
+              {search && (
+                <Link
+                  href="/dashboard/favorites"
+                  className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-600 transition hover:bg-purple-50 hover:text-[#8549e8]"
+                >
+                  Clear
+                </Link>
+              )}
+            </div>
           </form>
         </section>
 
+        {/* Query error */}
+        {error && (
+          <section className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4">
+            <p className="font-black text-rose-700">
+              Unable to load favorites
+            </p>
+
+            <p className="mt-1 text-sm text-rose-600">
+              Please refresh the page or try again later.
+            </p>
+          </section>
+        )}
+
+        {/* Favorites */}
         <section className="mt-6">
-          {favorites.length === 0 ? (
+          {!error && favorites.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
-              <Heart className="mx-auto text-slate-300" size={54} />
+              <Heart
+                className="mx-auto text-slate-300"
+                size={54}
+              />
 
               <h2 className="mt-5 text-xl font-black">
                 {search
@@ -256,7 +312,7 @@ export default async function FavoritesPage({
 
               <Link
                 href="/shop"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#8549e8] px-5 py-3 text-sm font-black text-white"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#8549e8] px-5 py-3 text-sm font-black text-white transition hover:bg-[#7440d0]"
               >
                 <ShoppingBag size={17} />
                 Explore products
@@ -266,59 +322,92 @@ export default async function FavoritesPage({
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {favorites.map(({ id, product }) => {
                 const image = getPrimaryImage(product);
-                const currentPrice = Number(
-                  product.sale_price ?? product.price ?? 0,
+
+                const originalPrice = Number(
+                  product.price ?? 0,
                 );
-                const originalPrice = Number(product.price ?? 0);
+
+                const salePrice = Number(
+                  product.sale_price ?? 0,
+                );
+
                 const hasDiscount =
-                  product.sale_price !== null &&
-                  currentPrice < originalPrice;
+                  salePrice > 0 &&
+                  originalPrice > 0 &&
+                  salePrice < originalPrice;
+
+                const currentPrice = hasDiscount
+                  ? salePrice
+                  : originalPrice;
+
+                const stock = Number(product.stock ?? 0);
+                const inStock = stock > 0;
+
+                const discountPercentage = hasDiscount
+                  ? Math.round(
+                      ((originalPrice - salePrice) /
+                        originalPrice) *
+                        100,
+                    )
+                  : 0;
 
                 return (
                   <article
                     key={id}
                     className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-purple-200 hover:shadow-xl"
                   >
-                    <Link
-                      href={getProductHref(product)}
-                      className="relative block aspect-square overflow-hidden bg-gradient-to-br from-slate-50 to-purple-50"
-                    >
-                      {image ? (
-                        <Image
-                          src={image}
-                          alt={product.title || "Favorite product"}
-                          fill
-                          unoptimized
-                          className="object-contain p-5 transition duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full flex-col items-center justify-center">
-                          <Package size={42} className="text-slate-300" />
-                          <p className="mt-3 text-sm font-bold text-slate-400">
-                            Image unavailable
-                          </p>
-                        </div>
-                      )}
+                    <div className="relative">
+                      <Link
+                        href={getProductHref(product)}
+                        className="relative block aspect-square overflow-hidden bg-gradient-to-br from-slate-50 to-purple-50"
+                      >
+                        {image ? (
+                          <Image
+                            src={image}
+                            alt={
+                              product.title ||
+                              "Favorite product"
+                            }
+                            fill
+                            unoptimized
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            className="object-contain p-5 transition duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center">
+                            <Package
+                              size={42}
+                              className="text-slate-300"
+                            />
 
-                      <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-pink-600 shadow-md">
+                            <p className="mt-3 text-sm font-bold text-slate-400">
+                              Image unavailable
+                            </p>
+                          </div>
+                        )}
+                      </Link>
+
+                      <div className="pointer-events-none absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-pink-600 shadow-md">
                         <Heart size={19} fill="currentColor" />
                       </div>
 
                       {hasDiscount && (
-                        <span className="absolute left-4 top-4 rounded-full bg-[#f36a47] px-3 py-1.5 text-xs font-black text-white shadow-sm">
-                          Sale
+                        <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-[#f36a47] px-3 py-1.5 text-xs font-black text-white shadow-sm">
+                          {discountPercentage}% OFF
                         </span>
                       )}
-                    </Link>
+                    </div>
 
                     <div className="p-5">
                       <p className="text-xs font-bold uppercase tracking-wide text-[#8549e8]">
-                        {product.category || "Personalized gift"}
+                        {product.category ||
+                          "Personalized gift"}
                       </p>
 
                       <Link href={getProductHref(product)}>
                         <h2 className="mt-2 line-clamp-2 min-h-12 text-lg font-black text-slate-800 transition hover:text-[#8549e8]">
-                          {product.title || "Personalized product"}
+                          {product.title ||
+                            "Personalized product"}
                         </h2>
                       </Link>
 
@@ -336,13 +425,13 @@ export default async function FavoritesPage({
 
                       <p
                         className={`mt-2 text-xs font-bold ${
-                          Number(product.stock ?? 0) > 0
+                          inStock
                             ? "text-emerald-600"
                             : "text-rose-500"
                         }`}
                       >
-                        {Number(product.stock ?? 0) > 0
-                          ? "In stock"
+                        {inStock
+                          ? `${stock} in stock`
                           : "Out of stock"}
                       </p>
 
@@ -355,13 +444,23 @@ export default async function FavoritesPage({
                           <ChevronRight size={16} />
                         </Link>
 
-                        <button
-                          type="button"
-                          title="Remove from favorites"
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                        <form
+                          action={removeFavorite.bind(
+                            null,
+                            id,
+                          )}
                         >
-                          <Trash2 size={17} />
-                        </button>
+                          <button
+                            type="submit"
+                            title="Remove from favorites"
+                            aria-label={`Remove ${
+                              product.title || "product"
+                            } from favorites`}
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        </form>
                       </div>
                     </div>
                   </article>

@@ -155,31 +155,38 @@ export default async function DashboardPage() {
     "/profile.jpg";
 
   const [
-    { data: ordersData, error: ordersError },
-    { count: designCount, error: designsError },
-  ] = await Promise.all([
-    supabase
-      .from("orders")
-      .select(`
+  { data: ordersData, error: ordersError },
+  { count: designCount, error: designsError },
+  { count: favoriteCount, error: favoritesError },
+] = await Promise.all([
+  supabase
+    .from("orders")
+    .select(`
+      id,
+      total_amount,
+      order_status,
+      payment_status,
+      created_at,
+      order_items (
         id,
-        total_amount,
-        order_status,
-        payment_status,
-        created_at,
-        order_items (
-          id,
-          product_title,
-          product_image_url,
-          preview_url
-        )
-      `)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("custom_designs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
-  ]);
+        product_title,
+        product_image_url,
+        preview_url
+      )
+    `)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false }),
+
+  supabase
+    .from("custom_designs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id),
+
+  supabase
+    .from("favorites")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id),
+]);
 
   if (ordersError) {
     console.error("Unable to load dashboard orders:", ordersError);
@@ -252,14 +259,18 @@ export default async function DashboardPage() {
       iconClass: "bg-blue-50 text-blue-600",
     },
     {
-      title: "Favorite Products",
-      value: String(designCount ?? 0),
-      description: "Your Favorites",
-      href: "/dashboard/favorites",
-      icon: Heart,
-      iconClass: "bg-pink-50 text-pink-600",
-    },
+  title: "Favorite Products",
+  value: String(favoriteCount ?? 0),
+  description: "Your Favorites",
+  href: "/dashboard/favorites",
+  icon: Heart,
+  iconClass: "bg-pink-50 text-pink-600",
+}
   ];
+
+  if (favoritesError) {
+  console.error("Unable to load favorites count:", favoritesError);
+}
 
   const quickActions = [
     {
@@ -291,6 +302,8 @@ export default async function DashboardPage() {
       iconClass: "bg-pink-50 text-pink-600",
     },
   ];
+
+  
 
   return (
     <main className="min-h-screen bg-[#faf9fc] text-slate-900">

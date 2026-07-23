@@ -87,6 +87,10 @@ export default async function ProductDetailsPage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const {
+  data: { user },
+} = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from("products")
     .select(`
@@ -160,6 +164,19 @@ export default async function ProductDetailsPage({
 
   const relatedProducts = (relatedData ?? []) as Product[];
 
+  let isFavorite = false;
+
+if (user) {
+  const { data: favorite } = await supabase
+    .from("favorites")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("product_id", product.id)
+    .maybeSingle();
+
+  isFavorite = !!favorite;
+}
+
   return (
     <main className="min-h-screen bg-white text-slate-950">
       {/* Breadcrumb */}
@@ -215,6 +232,7 @@ export default async function ProductDetailsPage({
           discountPercentage,
           images,
         }}
+        isFavorite={isFavorite}
       />
 
       {/* Benefits */}
