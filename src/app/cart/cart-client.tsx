@@ -116,6 +116,8 @@ export default function CartClient({
             : item,
         ),
       );
+
+      window.location.reload()
     } catch (error) {
       console.error(error);
       alert("Unable to update quantity.");
@@ -142,6 +144,8 @@ export default function CartClient({
       setCart((previous) =>
         previous.filter((item) => item.id !== cartItem.id),
       );
+
+      window.location.reload()
     } catch (error) {
       console.error(error);
       alert("Unable to remove this item.");
