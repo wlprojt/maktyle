@@ -46,9 +46,11 @@ export default function Navbar() {
 
         {/* Icons */}
         <div className="flex items-center text-gray-700 gap-6">
+          <Link href="/search">
           <button>
             <Search size={25} strokeWidth={2} />
           </button>
+          </Link>
           
           <Link href="/dashboard">
           <button>
