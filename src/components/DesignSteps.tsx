@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ArrowRight, Gift, Type, UploadCloud } from "lucide-react";
+import Link from "next/link";
 
 const steps = [
   {
@@ -79,10 +80,12 @@ export default function DesignSteps() {
                 Design something unique for your loved ones.
               </p>
 
+              <Link href={"/search"}>
               <button className="mt-7 flex items-center gap-2 rounded-full bg-purple-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-purple-300 transition hover:scale-105">
                 START DESIGNING
                 <ArrowRight size={18} />
               </button>
+              </Link>
             </div>
 
             <Image

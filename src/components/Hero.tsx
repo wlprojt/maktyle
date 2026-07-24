@@ -50,10 +50,10 @@ export default function Hero() {
             {/* </button> */}
             </Link>
 
-            <button className="flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 font-semibold text-gray-900 shadow-md transition-all hover:scale-105">
+            <Link href="/search" className="flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 font-semibold text-gray-900 shadow-md transition-all hover:scale-105">
               Design Your Gift
               <PenLine size={18} className="text-purple-600" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

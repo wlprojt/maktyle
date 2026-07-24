@@ -13,6 +13,12 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "maktyle | Search",
+  description: "Create personalized phone covers, photo frames, mugs, LED lamps, t-shirts, and unique custom gifts. Design your own gifts online with Maktyle.",
+};
 
 type SearchPageProps = {
   searchParams: Promise<{
